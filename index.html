@@ -4,20 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Fees & WhatsApp System</title>
+    <!-- Excel File Reader Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
-        .upload-container { display: flex; align-items: center; gap: 15px; background: #fff; padding: 10px 15px; border-radius: 5px; border: 1px solid #ddd; margin-bottom: 20px; }
+        h2 { color: #333; margin-bottom: 20px; }
+        
+        .upload-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #fff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .upload-container input[type="file"] { font-size: 13px; }
         table { border-collapse: collapse; width: 100%; background: white; margin-top: 15px; font-size: 14px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #4CAF50; color: white; }
+        
         .btn { padding: 8px 12px; cursor: pointer; color: white; border: none; border-radius: 4px; font-size: 13px; font-weight: bold;}
         .btn-whatsapp { background: #00e676; }
+        .btn-whatsapp:hover { background: #00c853; }
         .btn-archive { background: #e57373; margin-left: 10px; }
+        .btn-archive:hover { background: #ef5350; }
         .btn-upload { background: #5c6bc0; }
+        .btn-upload:hover { background: #3f51b5; }
+        
         .controls { display: flex; margin-bottom: 15px; }
+        .status-msg { font-size: 14px; color: #555; padding: 20px; text-align: center; }
 
-        /* പുതിയ വേഗത്തിലുള്ള കസ്റ്റം പോപ്പ്-അപ്പ് */
+        /* പുതിയ വേഗത്തിലുള്ള കസ്റ്റം പോപ്പ്-അപ്പ് വിൻഡോയുടെ ഡിസൈൻ */
         .overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.6); z-index: 9999; justify-content: center; align-items: center;
@@ -29,7 +50,9 @@
         .popup h3 { margin-top: 0; color: #333; font-size: 18px; }
         .popup p { color: #555; margin-bottom: 25px; font-size: 15px; }
         .btn-next { background: #25D366; font-size: 16px; padding: 12px 25px; width: 100%; margin-bottom: 10px;}
+        .btn-next:hover { background: #20b858; }
         .btn-cancel { background: #d9534f; width: 100%; padding: 10px; margin-top: 5px;}
+        .btn-cancel:hover { background: #c9302c; }
     </style>
 </head>
 <body>
@@ -64,7 +87,7 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <tr><td colspan="11" style="text-align:center; padding:20px;">Loading data...</td></tr>
+                <tr><td colspan="11" class="status-msg">Loading data... Please wait.</td></tr>
             </tbody>
         </table>
     </div>
@@ -80,27 +103,33 @@
     </div>
 
     <script>
+        // നിങ്ങൾ നൽകിയ പുതിയ യുആർഎൽ 
         const webAppUrl = 'https://script.google.com/macros/s/AKfycbymr6-kuDTjBkR_W74kTJ_IxA8oX0Drh4wdEKqStjadxYIaIGXAqFssBeMpqDC0-xp6sg/exec';
+        
         let studentData = [];
         let messagesQueue = []; 
 
+        // ഗൂഗിൾ ഷീറ്റിൽ നിന്നും ഡാറ്റ എടുക്കുന്നു
         async function fetchData() {
             try {
                 const response = await fetch(webAppUrl);
                 studentData = await response.json();
                 populateTable();
             } catch (error) {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" style="color:red; text-align:center;">Error loading data.</td></tr>';
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg" style="color:red;">Error loading data. Please check the Web App URL.</td></tr>';
             }
         }
 
+        // ടേബിളിൽ ഡാറ്റ കാണിക്കുന്നു
         function populateTable() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            if(studentData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">No data found.</td></tr>';
+            
+            if(!studentData || studentData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="status-msg">No data found in the sheet.</td></tr>';
                 return;
             }
+
             studentData.forEach((student, index) => {
                 if(student['Total'] > 0) { 
                     const tr = document.createElement('tr');
@@ -122,14 +151,18 @@
             });
         }
 
+        // എല്ലാം തിരഞ്ഞെടുക്കാൻ
         function toggleAll() {
             const selectAll = document.getElementById('selectAll').checked;
-            document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = selectAll);
+            const checkboxes = document.querySelectorAll('.student-checkbox');
+            checkboxes.forEach(cb => cb.checked = selectAll);
         }
 
+        // മെസ്സേജ് അയക്കാൻ തുടങ്ങുന്നു
         function startSendingMessages() {
             messagesQueue = [];
             const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+            
             if(checkboxes.length === 0) {
                 alert("ദയവായി കുട്ടികളെ തിരഞ്ഞെടുക്കുക!");
                 return;
@@ -139,6 +172,7 @@
                 const index = cb.getAttribute('data-index');
                 const student = studentData[index];
                 const phone = student['Mobile (F)']; 
+                
                 if (phone) {
                     let breakdown = '';
                     if(student['Monthly Fee']) breakdown += `Monthly Fee: ₹${student['Monthly Fee']}\n`;
@@ -159,6 +193,7 @@
             }
         }
 
+        // പോപ്പ്-അപ്പ് വഴി മെസ്സേജുകൾ അയക്കുന്നു
         function processQueue() {
             document.getElementById('messageOverlay').style.display = 'none';
 
@@ -188,6 +223,7 @@
             }
         }
 
+        // മെസ്സേജ് അയക്കുന്നത് നിർത്തി വെക്കാൻ
         function cancelSending() {
             messagesQueue = [];
             document.getElementById('messageOverlay').style.display = 'none';
@@ -196,41 +232,62 @@
             document.getElementById('popupTitle').innerText = 'അടുത്ത മെസ്സേജ് തയ്യാറാണ്';
         }
 
+        // എക്സൽ ഫയൽ അപ്‌ലോഡ് ചെയ്യാൻ
         function handleFileUpload() {
             const fileInput = document.getElementById('excelFile');
             const file = fileInput.files[0];
-            if (!file) { alert("ഫയൽ തിരഞ്ഞെടുക്കുക."); return; }
+            
+            if (!file) {
+                alert("ദയവായി ഒരു ഫയൽ തിരഞ്ഞെടുക്കുക.");
+                return;
+            }
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type: 'array'});
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                
                 const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
                 
                 if(jsonData.length > 0) {
-                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" style="text-align:center;">Uploading...</td></tr>';
+                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg">Uploading data to Google Sheet... Please wait.</td></tr>';
+                    
                     fetch(webAppUrl, {
-                        method: 'POST', mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
                         body: JSON.stringify({ action: "upload", sheetData: jsonData })
                     }).then(() => {
-                        alert("Uploaded successfully!"); fetchData(); 
-                    }).catch(err => { alert("Error uploading."); });
+                        alert("പുതിയ ഡാറ്റ വിജയകരമായി അപ്‌ലോഡ് ചെയ്തു!");
+                        fetchData(); 
+                    }).catch(err => {
+                        alert("അപ്‌ലോഡ് ചെയ്യുന്നതിൽ തകരാർ!");
+                        fetchData();
+                    });
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
+        // ഡാറ്റ ആർക്കൈവ് ചെയ്യാൻ
         async function archiveData() {
-            if(confirm("പഴയ ഡാറ്റ Archive ചെയ്യണോ?")) {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" style="text-align:center;">Archiving...</td></tr>';
+            if(confirm("പഴയ ഡാറ്റ Archive ചെയ്യണോ? മെയിൻ ഷീറ്റിലെ ഡാറ്റ മാഞ്ഞുപോകും.")) {
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg">Archiving data... Please wait.</td></tr>';
                 try {
                     await fetch(webAppUrl + "?action=archive");
-                    alert("Archived successfully."); fetchData(); 
-                } catch(error) { alert("Error."); fetchData(); }
+                    alert("പഴയ ഡാറ്റ ആർക്കൈവ് ചെയ്തു.");
+                    fetchData(); 
+                } catch(error) {
+                    alert("Error archiving data.");
+                    fetchData();
+                }
             }
         }
+
+        // തുടങ്ങുമ്പോൾ ഡാറ്റ ലോഡ് ചെയ്യുന്നു
         fetchData();
     </script>
 </body>
