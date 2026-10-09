@@ -35,8 +35,8 @@
         .btn-whatsapp:hover { background: #20b858; }
         .btn-archive { background: #d9534f; margin-left: 10px; }
         .btn-archive:hover { background: #c9302c; }
-        .btn-upload { background: #007BFF; }
-        .btn-upload:hover { background: #0056b3; }
+        .btn-upload { background: #4285F4; }
+        .btn-upload:hover { background: #3367d6; }
         
         .controls { display: flex; margin-bottom: 15px; }
         .status-msg { font-size: 14px; color: #555; padding: 20px; text-align: center; }
@@ -54,7 +54,7 @@
 
     <!-- Controls -->
     <div class="controls">
-        <button class="btn btn-whatsapp" onclick="sendWhatsAppMessages()">Send WhatsApp Message</button>
+        <button class="btn btn-whatsapp" onclick="sendNextMessage()">Send WhatsApp Message</button>
         <button class="btn btn-archive" onclick="archiveData()">Archive Old Data</button>
     </div>
     
@@ -83,13 +83,13 @@
     </div>
 
     <script>
-        // ഇവിടെ നിങ്ങളുടെ ഏറ്റവും പുതിയ ഗൂഗിൾ ആപ്സ് സ്ക്രിപ്റ്റ് Web App URL നൽകുക
-        // IMPORTANT: ആപ്സ് സ്ക്രിപ്റ്റിൽ മാറ്റം വരുത്തിയ ശേഷം പുതിയ Deployment വഴി ലഭിച്ച ലിങ്ക് നൽകണം
+        // നിങ്ങൾ നൽകിയ പുതിയ യുആർഎൽ
         const webAppUrl = 'https://script.google.com/macros/s/AKfycbymr6-kuDTjBkR_W74kTJ_IxA8oX0Drh4wdEKqStjadxYIaIGXAqFssBeMpqDC0-xp6sg/exec';
         
         let studentData = [];
+        let messagesQueue = []; // മെസ്സേജ് അയക്കാൻ ബാക്കിയുള്ളവരുടെ ലിസ്റ്റ്
 
-        // Fetch data from Google Sheet
+        // ഗൂഗിൾ ഷീറ്റിൽ നിന്നും ഡാറ്റ എടുക്കുന്നു
         async function fetchData() {
             try {
                 const response = await fetch(webAppUrl);
@@ -100,7 +100,7 @@
             }
         }
 
-        // Populate Table
+        // ടേബിൾ നിർമ്മിക്കുന്നു
         function populateTable() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
@@ -131,19 +131,21 @@
             });
         }
 
-        // Toggle all checkboxes
+        // എല്ലാവരെയും സെലക്ട് ചെയ്യാൻ
         function toggleAll() {
             const selectAll = document.getElementById('selectAll').checked;
             const checkboxes = document.querySelectorAll('.student-checkbox');
             checkboxes.forEach(cb => cb.checked = selectAll);
         }
 
-        // Send WhatsApp Messages
-        function sendWhatsAppMessages() {
+        // മെസ്സേജ് ക്യൂ തയ്യാറാക്കുന്നു
+        function prepareMessagesQueue() {
+            messagesQueue = [];
             const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+            
             if(checkboxes.length === 0) {
                 alert("Please select at least one student to send a message.");
-                return;
+                return false;
             }
 
             checkboxes.forEach(cb => {
@@ -162,13 +164,46 @@
 
                     const message = `പ്രിയപ്പെട്ട ${student['Father'] || ''},\nനിങ്ങളുടെ മകൾ ${student['Class'] || ''} ${student['Ad No'] || ''} ${student['Name']} എന്ന വിദ്യാർത്ഥിനിയുടെ OCTOBER മാസത്തിലെത് ഉൾപ്പെടെ Course fee താഴെ പറയുന്നവയാണ്:\n\n${breakdown}\nആകെ അടക്കേണ്ട തുക (Total): ₹${student['Total']}\n\nഈ തുക 05/10/2026-ന് മുമ്പ് അടച്ചു തീർക്കേണ്ടതാണ്.\n\nഫീ ഓഫീസിൽ നേരിട്ട് എത്തിക്കുകയോ താഴെ നൽകിയിരിക്കുന്ന അക്കൗണ്ടിലേക്ക് അയച്ച് സ്ക്രീൻ ഷോട്ട് /റസിപ്പറ്റി ന്റെ ഫോട്ടോ കുട്ടിയുടെ പേര്,ക്ലാസ്സ്‌ എന്നിവ 9447810041 എന്ന വാട്സാപ്പ് നമ്പറിലേക്ക് അയക്കുകയോ ചെയ്യുക\n(Transaction ID യും തിയ്യതിയും കാണുന്ന രീതിയിൽ അയക്കാൻ ശ്രദ്ധിക്കുക.)\n\nAc No: 16470200012711\nName: Crescent SNEC She Campus \nFederal Bank of India\nChelari\nIFSC : FDRL0001647`;
                     
-                    const whatsappUrl = `https://wa.me/91${phone}?text=${encodeURIComponent(message)}`;
-                    window.open(whatsappUrl, '_blank');
+                    messagesQueue.push({phone, message, checkbox: cb});
                 }
             });
+            return true;
         }
 
-        // Upload Excel File
+        // അടുത്ത മെസ്സേജ് അയക്കുന്നു
+        function sendNextMessage() {
+            if (messagesQueue.length === 0) {
+                 if(prepareMessagesQueue()){
+                     processQueue();
+                 }
+            } else {
+                processQueue();
+            }
+        }
+
+        // ക്യൂവിലുള്ളവ അയക്കുന്നു
+        function processQueue() {
+             if (messagesQueue.length > 0) {
+                const nextMessage = messagesQueue.shift(); // ആദ്യത്തെ ആളെ എടുക്കുന്നു
+                const whatsappUrl = `https://web.whatsapp.com/send?phone=91${nextMessage.phone}&text=${encodeURIComponent(nextMessage.message)}`;
+                
+                // വാട്സാപ്പ് പുതിയ ടാബിൽ തുറക്കുന്നു
+                window.open(whatsappUrl, '_blank');
+                
+                // അയച്ചുകഴിഞ്ഞാൽ ആ കുട്ടിയുടെ ടിക്ക് ഒഴിവാക്കുന്നു (തിരിച്ചറിയാൻ വേണ്ടി)
+                nextMessage.checkbox.checked = false;
+
+                if (messagesQueue.length > 0) {
+                     alert("അടുത്ത മെസ്സേജ് അയക്കാൻ OK അമർത്തുക");
+                     // OK അടിച്ചാൽ വീണ്ടും ഫംഗ്ഷൻ പ്രവർത്തിക്കും
+                     // പോപ്പ്-അപ്പ് ബ്ലോക്ക് ചെയ്യാതിരിക്കാൻ യൂസർ ഇൻട്രാക്ഷൻ ആവശ്യമാണ്
+                } else {
+                     alert("എല്ലാ മെസ്സേജുകളും അയച്ചു കഴിഞ്ഞു!");
+                }
+            }
+        }
+
+        // എക്സൽ ഫയൽ അപ്‌ലോഡ് ചെയ്യാൻ
         function handleFileUpload() {
             const fileInput = document.getElementById('excelFile');
             const file = fileInput.files[0];
@@ -207,7 +242,7 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Archive Data
+        // ഡാറ്റ ആർക്കൈവ് ചെയ്യാൻ
         async function archiveData() {
             if(confirm("Are you sure you want to archive this month's data? The main sheet will be cleared.")) {
                 document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg">Archiving data... Please wait.</td></tr>';
@@ -222,7 +257,7 @@
             }
         }
 
-        // Load data on start
+        // തുടങ്ങുമ്പോൾ ഡാറ്റ ലോഡ് ചെയ്യുന്നു
         fetchData();
     </script>
 </body>
