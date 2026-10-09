@@ -2,64 +2,157 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- മൊബൈൽ റെസ്പോൺസീവ് ആക്കാനുള്ള ടാഗ് -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Student Fees & WhatsApp System</title>
-    <!-- Excel File Reader Library -->
+    <!-- എക്സൽ ഫയൽ റീഡ് ചെയ്യാനുള്ള ലൈബ്രറി -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- മികച്ച ഫോണ്ടിനായി Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
-        h2 { color: #333; margin-bottom: 20px; }
-        
-        .upload-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background: #fff;
-            padding: 10px 15px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f0f4f8; 
+            color: #333; 
         }
         
-        .upload-container input[type="file"] { font-size: 13px; }
-        table { border-collapse: collapse; width: 100%; background: white; margin-top: 15px; font-size: 14px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #4CAF50; color: white; }
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+        }
+
+        h2 { 
+            color: #1e293b; 
+            margin-bottom: 25px; 
+            text-align: center;
+            font-weight: 600;
+            font-size: 24px;
+        }
         
-        .btn { padding: 8px 12px; cursor: pointer; color: white; border: none; border-radius: 4px; font-size: 13px; font-weight: bold;}
-        .btn-whatsapp { background: #00e676; }
-        .btn-whatsapp:hover { background: #00c853; }
-        .btn-archive { background: #e57373; margin-left: 10px; }
-        .btn-archive:hover { background: #ef5350; }
-        .btn-upload { background: #5c6bc0; }
-        .btn-upload:hover { background: #3f51b5; }
+        /* അപ്‌ലോഡ് സെക്ഷൻ ഡിസൈൻ */
+        .upload-container { 
+            display: flex; 
+            flex-wrap: wrap; 
+            align-items: center; 
+            gap: 15px; 
+            background: #f8fafc; 
+            padding: 20px; 
+            border-radius: 8px; 
+            border: 2px dashed #cbd5e1; 
+            margin-bottom: 25px; 
+        }
         
-        .controls { display: flex; margin-bottom: 15px; }
+        .upload-container input[type="file"] { 
+            font-size: 14px; 
+            flex: 1;
+            min-width: 200px;
+        }
+
+        /* പ്രീമിയം ബട്ടണുകൾ */
+        .btn { 
+            padding: 12px 20px; 
+            cursor: pointer; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15); 
+        }
+        
+        .btn-whatsapp { background: linear-gradient(135deg, #25D366, #128C7E); }
+        .btn-archive { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .btn-upload { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        
+        .controls { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+            margin-bottom: 20px; 
+        }
+
+        /* ടേബിൾ ഡിസൈൻ */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            background: white; 
+            white-space: nowrap; /* മൊബൈലിൽ ഡാറ്റ ചുരുങ്ങാതിരിക്കാൻ */
+            font-size: 14px; 
+        }
+        
+        th, td { 
+            border-bottom: 1px solid #e2e8f0; 
+            padding: 15px; 
+            text-align: left; 
+        }
+        
+        th { 
+            background-color: #f1f5f9; 
+            color: #475569; 
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover { background-color: #f8fafc; }
+        
         .status-msg { font-size: 14px; color: #555; padding: 20px; text-align: center; }
 
-        /* പുതിയ വേഗത്തിലുള്ള കസ്റ്റം പോപ്പ്-അപ്പ് വിൻഡോയുടെ ഡിസൈൻ */
+        /* പോപ്പ്-അപ്പ് വിൻഡോയുടെ ഡിസൈൻ */
         .overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); z-index: 9999; justify-content: center; align-items: center;
+            background: rgba(15, 23, 42, 0.7); z-index: 9999; justify-content: center; align-items: center;
+            backdrop-filter: blur(4px);
         }
         .popup {
-            background: white; padding: 30px; border-radius: 10px; text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-width: 400px; width: 90%;
+            background: white; padding: 30px; border-radius: 12px; text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-width: 400px; width: 85%;
         }
-        .popup h3 { margin-top: 0; color: #333; font-size: 18px; }
-        .popup p { color: #555; margin-bottom: 25px; font-size: 15px; }
-        .btn-next { background: #25D366; font-size: 16px; padding: 12px 25px; width: 100%; margin-bottom: 10px;}
-        .btn-next:hover { background: #20b858; }
-        .btn-cancel { background: #d9534f; width: 100%; padding: 10px; margin-top: 5px;}
-        .btn-cancel:hover { background: #c9302c; }
+        .popup h3 { margin-top: 0; color: #1e293b; font-size: 18px; font-weight: 600; }
+        .popup p { color: #64748b; margin-bottom: 25px; font-size: 15px; }
+        .btn-next { background: linear-gradient(135deg, #25D366, #128C7E); font-size: 16px; padding: 12px 25px; width: 100%; margin-bottom: 10px;}
+        .btn-cancel { background: #cbd5e1; color: #475569; width: 100%; padding: 12px; margin-top: 5px; font-weight: 600;}
+        .btn-cancel:hover { background: #e2e8f0; color: #1e293b; box-shadow: none; transform: none;}
+
+        /* മൊബൈൽ ഫോണുകൾക്ക് വേണ്ടിയുള്ള പ്രത്യേക ഡിസൈൻ */
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .app-container { padding: 15px; }
+            .btn { width: 100%; }
+            .upload-container { flex-direction: column; align-items: stretch; text-align: center; }
+            h2 { font-size: 20px; margin-bottom: 15px;}
+            .controls { flex-direction: column; gap: 10px; }
+        }
     </style>
 </head>
 <body>
+
+<div class="app-container">
     <h2>Student Fees & WhatsApp System</h2>
     
     <div class="upload-container">
-        <strong style="font-size: 14px; color: #444;">Upload New Sheet:</strong>
+        <strong style="font-size: 14px; color: #475569;">Upload New Sheet:</strong>
         <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
         <button class="btn btn-upload" onclick="handleFileUpload()">Upload & Save</button>
     </div>
@@ -69,11 +162,11 @@
         <button class="btn btn-archive" onclick="archiveData()">Archive Old Data</button>
     </div>
     
-    <div style="overflow-x:auto;">
+    <div class="table-wrapper">
         <table id="dataTable">
             <thead>
                 <tr>
-                    <th><input type="checkbox" id="selectAll" onclick="toggleAll()"> Select All</th>
+                    <th><input type="checkbox" id="selectAll" onclick="toggleAll()"> All</th>
                     <th>Student Name</th>
                     <th>Parent</th>
                     <th>Mobile (F)</th>
@@ -91,204 +184,200 @@
             </tbody>
         </table>
     </div>
+</div>
 
-    <!-- പോപ്പ്-അപ്പ് വിൻഡോ -->
-    <div class="overlay" id="messageOverlay">
-        <div class="popup">
-            <h3 id="popupTitle">അടുത്ത മെസ്സേജ് തയ്യാറാണ്</h3>
-            <p id="popupText">തുടരാൻ താഴെ ക്ലിക്ക് ചെയ്യുക.</p>
-            <button class="btn btn-next" onclick="processQueue()">Send Next Message</button>
-            <button class="btn btn-cancel" onclick="cancelSending()">Cancel</button>
-        </div>
+<!-- പോപ്പ്-അപ്പ് വിൻഡോ -->
+<div class="overlay" id="messageOverlay">
+    <div class="popup">
+        <h3 id="popupTitle">അടുത്ത മെസ്സേജ് തയ്യാറാണ്</h3>
+        <p id="popupText">തുടരാൻ താഴെ ക്ലിക്ക് ചെയ്യുക.</p>
+        <button class="btn btn-next" onclick="processQueue()">Send Next Message</button>
+        <button class="btn btn-cancel" onclick="cancelSending()">Cancel</button>
     </div>
+</div>
 
-    <script>
-        // നിങ്ങൾ നൽകിയ പുതിയ യുആർഎൽ 
-        const webAppUrl = 'https://script.google.com/macros/s/AKfycbymr6-kuDTjBkR_W74kTJ_IxA8oX0Drh4wdEKqStjadxYIaIGXAqFssBeMpqDC0-xp6sg/exec';
+<script>
+    // ഗൂഗിൾ ആപ്സ് സ്ക്രിപ്റ്റ് യുആർഎൽ
+    const webAppUrl = 'https://script.google.com/macros/s/AKfycbymr6-kuDTjBkR_W74kTJ_IxA8oX0Drh4wdEKqStjadxYIaIGXAqFssBeMpqDC0-xp6sg/exec';
+    
+    let studentData = [];
+    let messagesQueue = []; 
+
+    // ഡാറ്റ ലോഡ് ചെയ്യുന്നു
+    async function fetchData() {
+        try {
+            const response = await fetch(webAppUrl);
+            studentData = await response.json();
+            populateTable();
+        } catch (error) {
+            document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg" style="color:#ef4444;">Error loading data. Please check the Web App URL.</td></tr>';
+        }
+    }
+
+    // ടേബിൾ നിർമ്മിക്കുന്നു
+    function populateTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
         
-        let studentData = [];
-        let messagesQueue = []; 
-
-        // ഗൂഗിൾ ഷീറ്റിൽ നിന്നും ഡാറ്റ എടുക്കുന്നു
-        async function fetchData() {
-            try {
-                const response = await fetch(webAppUrl);
-                studentData = await response.json();
-                populateTable();
-            } catch (error) {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg" style="color:red;">Error loading data. Please check the Web App URL.</td></tr>';
-            }
+        if(!studentData || studentData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="11" class="status-msg">No data found in the sheet.</td></tr>';
+            return;
         }
 
-        // ടേബിളിൽ ഡാറ്റ കാണിക്കുന്നു
-        function populateTable() {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
+        studentData.forEach((student, index) => {
+            if(student['Total'] > 0) { 
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="student-checkbox" data-index="${index}"></td>
+                    <td><strong>${student['Name'] || ''}</strong></td>
+                    <td>${student['Father'] || ''}</td>
+                    <td>${student['Mobile (F)'] || ''}</td>
+                    <td>${student['Monthly Fee'] || 0}</td>
+                    <td>${student['Exam Fee'] || 0}</td>
+                    <td>${student['Medical'] || 0}</td>
+                    <td>${student['Mess Fee'] || 0}</td>
+                    <td>${student['Stationary'] || 0}</td>
+                    <td>${student['Others'] || 0}</td>
+                    <td style="color:#2563eb;"><strong>₹${student['Total'] || 0}</strong></td>
+                `;
+                tbody.appendChild(tr);
+            }
+        });
+    }
+
+    // എല്ലാം തിരഞ്ഞെടുക്കാൻ
+    function toggleAll() {
+        const selectAll = document.getElementById('selectAll').checked;
+        const checkboxes = document.querySelectorAll('.student-checkbox');
+        checkboxes.forEach(cb => cb.checked = selectAll);
+    }
+
+    // മെസ്സേജ് ക്യൂ തയ്യാറാക്കുന്നു
+    function startSendingMessages() {
+        messagesQueue = [];
+        const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+        
+        if(checkboxes.length === 0) {
+            alert("ദയവായി മെസ്സേജ് അയക്കാൻ കുട്ടികളെ തിരഞ്ഞെടുക്കുക!");
+            return;
+        }
+
+        checkboxes.forEach(cb => {
+            const index = cb.getAttribute('data-index');
+            const student = studentData[index];
+            const phone = student['Mobile (F)']; 
             
-            if(!studentData || studentData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11" class="status-msg">No data found in the sheet.</td></tr>';
-                return;
+            if (phone) {
+                let breakdown = '';
+                if(student['Monthly Fee']) breakdown += `Monthly Fee: ₹${student['Monthly Fee']}\n`;
+                if(student['Exam Fee']) breakdown += `Exam Fee: ₹${student['Exam Fee']}\n`;
+                if(student['Medical']) breakdown += `Medical: ₹${student['Medical']}\n`;
+                if(student['Mess Fee']) breakdown += `Mess Fee: ₹${student['Mess Fee']}\n`;
+                if(student['Stationary']) breakdown += `Stationary: ₹${student['Stationary']}\n`;
+                if(student['Others']) breakdown += `Others: ₹${student['Others']}\n`;
+
+                const message = `പ്രിയപ്പെട്ട ${student['Father'] || ''},\nനിങ്ങളുടെ മകൾ ${student['Class'] || ''} ${student['Ad No'] || ''} ${student['Name']} എന്ന വിദ്യാർത്ഥിനിയുടെ OCTOBER മാസത്തിലെത് ഉൾപ്പെടെ Course fee താഴെ പറയുന്നവയാണ്:\n\n${breakdown}\nആകെ അടക്കേണ്ട തുക (Total): ₹${student['Total']}\n\nഈ തുക 05/10/2026-ന് മുമ്പ് അടച്ചു തീർക്കേണ്ടതാണ്.\n\nഫീ ഓഫീസിൽ നേരിട്ട് എത്തിക്കുകയോ താഴെ നൽകിയിരിക്കുന്ന അക്കൗണ്ടിലേക്ക് അയച്ച് സ്ക്രീൻ ഷോട്ട് /റസിപ്പറ്റി ന്റെ ഫോട്ടോ കുട്ടിയുടെ പേര്,ക്ലാസ്സ്‌ എന്നിവ 9447810041 എന്ന വാട്സാപ്പ് നമ്പറിലേക്ക് അയക്കുകയോ ചെയ്യുക\n(Transaction ID യും തിയ്യതിയും കാണുന്ന രീതിയിൽ അയക്കാൻ ശ്രദ്ധിക്കുക.)\n\nAc No: 16470200012711\nName: Crescent SNEC She Campus \nFederal Bank of India\nChelari\nIFSC : FDRL0001647`;
+                
+                messagesQueue.push({phone, message, checkbox: cb, studentName: student['Name']});
             }
+        });
 
-            studentData.forEach((student, index) => {
-                if(student['Total'] > 0) { 
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td><input type="checkbox" class="student-checkbox" data-index="${index}"></td>
-                        <td>${student['Name'] || ''}</td>
-                        <td>${student['Father'] || ''}</td>
-                        <td>${student['Mobile (F)'] || ''}</td>
-                        <td>${student['Monthly Fee'] || 0}</td>
-                        <td>${student['Exam Fee'] || 0}</td>
-                        <td>${student['Medical'] || 0}</td>
-                        <td>${student['Mess Fee'] || 0}</td>
-                        <td>${student['Stationary'] || 0}</td>
-                        <td>${student['Others'] || 0}</td>
-                        <td><strong>₹${student['Total'] || 0}</strong></td>
-                    `;
-                    tbody.appendChild(tr);
-                }
-            });
+        if(messagesQueue.length > 0) {
+            processQueue();
         }
+    }
 
-        // എല്ലാം തിരഞ്ഞെടുക്കാൻ
-        function toggleAll() {
-            const selectAll = document.getElementById('selectAll').checked;
-            const checkboxes = document.querySelectorAll('.student-checkbox');
-            checkboxes.forEach(cb => cb.checked = selectAll);
-        }
+    // മെസ്സേജ് അയക്കുന്നു
+    function processQueue() {
+        document.getElementById('messageOverlay').style.display = 'none';
 
-        // മെസ്സേജ് അയക്കാൻ തുടങ്ങുന്നു
-        function startSendingMessages() {
-            messagesQueue = [];
-            const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+         if (messagesQueue.length > 0) {
+            const nextMessage = messagesQueue.shift(); 
+            const whatsappUrl = `https://wa.me/91${nextMessage.phone}?text=${encodeURIComponent(nextMessage.message)}`;
             
-            if(checkboxes.length === 0) {
-                alert("ദയവായി കുട്ടികളെ തിരഞ്ഞെടുക്കുക!");
-                return;
-            }
+            window.open(whatsappUrl, '_blank');
+            nextMessage.checkbox.checked = false; 
 
-            checkboxes.forEach(cb => {
-                const index = cb.getAttribute('data-index');
-                const student = studentData[index];
-                const phone = student['Mobile (F)']; 
-                
-                if (phone) {
-                    let breakdown = '';
-                    if(student['Monthly Fee']) breakdown += `Monthly Fee: ₹${student['Monthly Fee']}\n`;
-                    if(student['Exam Fee']) breakdown += `Exam Fee: ₹${student['Exam Fee']}\n`;
-                    if(student['Medical']) breakdown += `Medical: ₹${student['Medical']}\n`;
-                    if(student['Mess Fee']) breakdown += `Mess Fee: ₹${student['Mess Fee']}\n`;
-                    if(student['Stationary']) breakdown += `Stationary: ₹${student['Stationary']}\n`;
-                    if(student['Others']) breakdown += `Others: ₹${student['Others']}\n`;
-
-                    const message = `പ്രിയപ്പെട്ട ${student['Father'] || ''},\nനിങ്ങളുടെ മകൾ ${student['Class'] || ''} ${student['Ad No'] || ''} ${student['Name']} എന്ന വിദ്യാർത്ഥിനിയുടെ OCTOBER മാസത്തിലെത് ഉൾപ്പെടെ Course fee താഴെ പറയുന്നവയാണ്:\n\n${breakdown}\nആകെ അടക്കേണ്ട തുക (Total): ₹${student['Total']}\n\nഈ തുക 05/10/2026-ന് മുമ്പ് അടച്ചു തീർക്കേണ്ടതാണ്.\n\nഫീ ഓഫീസിൽ നേരിട്ട് എത്തിക്കുകയോ താഴെ നൽകിയിരിക്കുന്ന അക്കൗണ്ടിലേക്ക് അയച്ച് സ്ക്രീൻ ഷോട്ട് /റസിപ്പറ്റി ന്റെ ഫോട്ടോ കുട്ടിയുടെ പേര്,ക്ലാസ്സ്‌ എന്നിവ 9447810041 എന്ന വാട്സാപ്പ് നമ്പറിലേക്ക് അയക്കുകയോ ചെയ്യുക\n(Transaction ID യും തിയ്യതിയും കാണുന്ന രീതിയിൽ അയക്കാൻ ശ്രദ്ധിക്കുക.)\n\nAc No: 16470200012711\nName: Crescent SNEC She Campus \nFederal Bank of India\nChelari\nIFSC : FDRL0001647`;
-                    
-                    messagesQueue.push({phone, message, checkbox: cb, studentName: student['Name']});
-                }
-            });
-
-            if(messagesQueue.length > 0) {
-                processQueue();
+            if (messagesQueue.length > 0) {
+                document.getElementById('popupText').innerHTML = `അടുത്ത മെസ്സേജ് അയക്കേണ്ടത്: <br><strong style="font-size:18px; color:#3b82f6; display:block; margin-top:10px;">${messagesQueue[0].studentName}</strong>`;
+                setTimeout(() => {
+                    document.getElementById('messageOverlay').style.display = 'flex';
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    document.getElementById('messageOverlay').style.display = 'flex';
+                    document.getElementById('popupTitle').innerText = 'പൂർത്തിയായി';
+                    document.getElementById('popupText').innerText = 'എല്ലാ മെസ്സേജുകളും വിജയകരമായി അയച്ചു കഴിഞ്ഞു!';
+                    document.querySelector('.btn-next').style.display = 'none';
+                    document.querySelector('.btn-cancel').innerText = 'Close';
+                }, 500);
             }
         }
+    }
 
-        // പോപ്പ്-അപ്പ് വഴി മെസ്സേജുകൾ അയക്കുന്നു
-        function processQueue() {
-            document.getElementById('messageOverlay').style.display = 'none';
+    // റദ്ദാക്കുന്നു
+    function cancelSending() {
+        messagesQueue = [];
+        document.getElementById('messageOverlay').style.display = 'none';
+        document.querySelector('.btn-next').style.display = 'inline-block';
+        document.querySelector('.btn-cancel').innerText = 'Cancel';
+        document.getElementById('popupTitle').innerText = 'അടുത്ത മെസ്സേജ് തയ്യാറാണ്';
+    }
 
-             if (messagesQueue.length > 0) {
-                const nextMessage = messagesQueue.shift(); 
-                const whatsappUrl = `https://web.whatsapp.com/send?phone=91${nextMessage.phone}&text=${encodeURIComponent(nextMessage.message)}`;
-                
-                // വാട്സാപ്പ് തുറക്കുന്നു
-                window.open(whatsappUrl, '_blank');
-                nextMessage.checkbox.checked = false; 
-
-                // പെട്ടെന്ന് തന്നെ പോപ്പ്-അപ്പ് വരാൻ 500ms സമയം മാത്രം
-                if (messagesQueue.length > 0) {
-                    document.getElementById('popupText').innerHTML = `അടുത്ത മെസ്സേജ് അയക്കേണ്ടത്: <br><strong style="font-size:18px; color:#d9534f;">${messagesQueue[0].studentName}</strong>`;
-                    setTimeout(() => {
-                        document.getElementById('messageOverlay').style.display = 'flex';
-                    }, 500);
-                } else {
-                    setTimeout(() => {
-                        document.getElementById('messageOverlay').style.display = 'flex';
-                        document.getElementById('popupTitle').innerText = 'പൂർത്തിയായി';
-                        document.getElementById('popupText').innerText = 'എല്ലാ മെസ്സേജുകളും അയച്ചു കഴിഞ്ഞു!';
-                        document.querySelector('.btn-next').style.display = 'none';
-                        document.querySelector('.btn-cancel').innerText = 'Close';
-                    }, 500);
-                }
-            }
+    // ഫയൽ അപ്‌ലോഡ്
+    function handleFileUpload() {
+        const fileInput = document.getElementById('excelFile');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            alert("ദയവായി ഒരു ഫയൽ തിരഞ്ഞെടുക്കുക.");
+            return;
         }
 
-        // മെസ്സേജ് അയക്കുന്നത് നിർത്തി വെക്കാൻ
-        function cancelSending() {
-            messagesQueue = [];
-            document.getElementById('messageOverlay').style.display = 'none';
-            document.querySelector('.btn-next').style.display = 'inline-block';
-            document.querySelector('.btn-cancel').innerText = 'Cancel';
-            document.getElementById('popupTitle').innerText = 'അടുത്ത മെസ്സേജ് തയ്യാറാണ്';
-        }
-
-        // എക്സൽ ഫയൽ അപ്‌ലോഡ് ചെയ്യാൻ
-        function handleFileUpload() {
-            const fileInput = document.getElementById('excelFile');
-            const file = fileInput.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
             
-            if (!file) {
-                alert("ദയവായി ഒരു ഫയൽ തിരഞ്ഞെടുക്കുക.");
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            if(jsonData.length > 0) {
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg">Uploading data... Please wait.</td></tr>';
                 
-                const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
-                
-                if(jsonData.length > 0) {
-                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg">Uploading data to Google Sheet... Please wait.</td></tr>';
-                    
-                    fetch(webAppUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ action: "upload", sheetData: jsonData })
-                    }).then(() => {
-                        alert("പുതിയ ഡാറ്റ വിജയകരമായി അപ്‌ലോഡ് ചെയ്തു!");
-                        fetchData(); 
-                    }).catch(err => {
-                        alert("അപ്‌ലോഡ് ചെയ്യുന്നതിൽ തകരാർ!");
-                        fetchData();
-                    });
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        // ഡാറ്റ ആർക്കൈവ് ചെയ്യാൻ
-        async function archiveData() {
-            if(confirm("പഴയ ഡാറ്റ Archive ചെയ്യണോ? മെയിൻ ഷീറ്റിലെ ഡാറ്റ മാഞ്ഞുപോകും.")) {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg">Archiving data... Please wait.</td></tr>';
-                try {
-                    await fetch(webAppUrl + "?action=archive");
-                    alert("പഴയ ഡാറ്റ ആർക്കൈവ് ചെയ്തു.");
+                fetch(webAppUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: "upload", sheetData: jsonData })
+                }).then(() => {
+                    alert("ഡാറ്റ വിജയകരമായി അപ്‌ലോഡ് ചെയ്തു!");
                     fetchData(); 
-                } catch(error) {
-                    alert("Error archiving data.");
+                }).catch(err => {
+                    alert("അപ്‌ലോഡ് പരാജയപ്പെട്ടു!");
                     fetchData();
-                }
+                });
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // ആർക്കൈവ്
+    async function archiveData() {
+        if(confirm("പഴയ ഡാറ്റ Archive ചെയ്യണോ? മെയിൻ ഷീറ്റിലെ ഡാറ്റ മാഞ്ഞുപോകും.")) {
+            document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg">Archiving data... Please wait.</td></tr>';
+            try {
+                await fetch(webAppUrl + "?action=archive");
+                alert("പഴയ ഡാറ്റ ആർക്കൈവ് ചെയ്തു.");
+                fetchData(); 
+            } catch(error) {
+                alert("Error archiving data.");
+                fetchData();
             }
         }
+    }
 
-        // തുടങ്ങുമ്പോൾ ഡാറ്റ ലോഡ് ചെയ്യുന്നു
-        fetchData();
-    </script>
+    fetchData();
+</script>
+
 </body>
 </html>
