@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fee WhatsApp Sender</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
+        table { border-collapse: collapse; width: 100%; background: white; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        .btn { padding: 10px 15px; margin: 5px; cursor: pointer; color: white; border: none; border-radius: 5px; font-size: 14px;}
+        .btn-whatsapp { background: #25D366; }
+        .btn-archive { background: #d9534f; }
+        .controls { margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <h2>സ്റ്റുഡന്റ് ഫീസ് & വാട്സാപ്പ് സിസ്റ്റം</h2>
+    
+    <div class="controls">
+        <button class="btn btn-whatsapp" onclick="sendWhatsAppMessages()">തിരഞ്ഞെടുത്തവർക്ക് മെസ്സേജ് അയക്കുക</button>
+        <button class="btn btn-archive" onclick="archiveData()">പഴയ ഡാറ്റ ആർക്കൈവ് ചെയ്യുക (Archive)</button>
+    </div>
+    
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="selectAll" onclick="toggleAll()"> എല്ലാം തിരഞ്ഞെടുക്കുക</th>
+                <th>കുട്ടിയുടെ പേര്</th>
+                <th>രക്ഷിതാവ്</th>
+                <th>മൊബൈൽ (F)</th>
+                <th>മൊത്തം ഫീസ് (Total)</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <tr><td colspan="5">ഡാറ്റ ലോഡ് ചെയ്യുന്നു... ദയവായി കാത്തിരിക്കുക.</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+        // അപ്ഡേറ്റ് ചെയ്ത ഗൂഗിൾ ആപ്സ് സ്ക്രിപ്റ്റ് Web App URL
+        const webAppUrl = 'https://script.google.com/macros/s/AKfycbyf9nZcYnPRR43JNIxt1L8OJ2opDBHKn1E7_VYK9SAlBXDdlfVZPNdDjxLQUhBC-Rf5Hw/exec';
+        let studentData = [];
+
+        // ഗൂഗിൾ ഷീറ്റിൽ നിന്നും ഡാറ്റ എടുക്കുന്നതിനുള്ള ഫംഗ്ഷൻ
+        async function fetchData() {
+            try {
+                const response = await fetch(webAppUrl);
+                studentData = await response.json();
+                populateTable();
+            } catch (error) {
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5">ഡാറ്റ എടുക്കുന്നതിൽ തകരാർ സംഭവിച്ചു.</td></tr>';
+            }
+        }
+
+        // ടേബിളിൽ ഡാറ്റ കാണിക്കുന്നതിനുള്ള ഫംഗ്ഷൻ
+        function populateTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            if(studentData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">ഷീറ്റിൽ ഡാറ്റയൊന്നും ഇല്ല.</td></tr>';
+                return;
+            }
+
+            studentData.forEach((student, index) => {
+                if(student['Total'] > 0) { // ഫീസ് ബാക്കിയുള്ളവരെ മാത്രം കാണിക്കാൻ
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><input type="checkbox" class="student-checkbox" data-index="${index}"></td>
+                        <td>${student['Name']}</td>
+                        <td>${student['Father']}</td>
+                        <td>${student['Mobile (F)']}</td>
+                        <td>₹${student['Total']}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+        }
+
+        // എല്ലാ ചെക്ക്ബോക്സുകളും ഒരുമിച്ച് ടിക്ക് ചെയ്യാൻ
+        function toggleAll() {
+            const selectAll = document.getElementById('selectAll').checked;
+            const checkboxes = document.querySelectorAll('.student-checkbox');
+            checkboxes.forEach(cb => cb.checked = selectAll);
+        }
+
+        // വാട്സാപ്പ് മെസ്സേജ് അയക്കാൻ
+        function sendWhatsAppMessages() {
+            const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+            if(checkboxes.length === 0) {
+                alert("മെസ്സേജ് അയക്കാൻ കുട്ടികളെ തിരഞ്ഞെടുക്കുക!");
+                return;
+            }
+
+            checkboxes.forEach(cb => {
+                const index = cb.getAttribute('data-index');
+                const student = studentData[index];
+                const phone = student['Mobile (F)']; 
+                
+                if (phone) {
+                    // അയക്കേണ്ട മെസ്സേജ് ഇവിടെ മാറ്റാം
+                    const message = `നമസ്കാരം ${student['Father']},\n${student['Name']}-ന്റെ ഈ മാസത്തെ ഫീസ് ഇനത്തിൽ ₹${student['Total']} അടക്കാൻ ബാക്കിയുണ്ട്. ദയവായി അടക്കാൻ ശ്രദ്ധിക്കുമല്ലോ.`;
+                    
+                    // ഇന്ത്യയുടെ കോഡ് (91) ഡിഫോൾട്ട് ആയി നൽകിയിട്ടുണ്ട്
+                    const whatsappUrl = `https://wa.me/91${phone}?text=${encodeURIComponent(message)}`;
+                    
+                    // ഓരോരുത്തർക്കും മെസ്സേജ് അയക്കാൻ പുതിയ ടാബ് ഓപ്പൺ ആകും
+                    window.open(whatsappUrl, '_blank');
+                }
+            });
+        }
+
+        // പഴയ ഡാറ്റ മാറ്റാൻ (Archive)
+        async function archiveData() {
+            if(confirm("ഈ മാസത്തെ ഡാറ്റ Archive ഷീറ്റിലേക്ക് മാറ്റട്ടെ? മെയിൻ ഷീറ്റിലെ ഡാറ്റ മാഞ്ഞുപോകും.")) {
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5">ഡാറ്റ മാറ്റുന്നു...</td></tr>';
+                const response = await fetch(webAppUrl + "?action=archive");
+                const result = await response.json();
+                alert(result.message);
+                fetchData(); // പുതിയ ഡാറ്റ വീണ്ടും ലോഡ് ചെയ്യുക
+            }
+        }
+
+        // പേജ് ലോഡ് ആകുമ്പോൾ തന്നെ ഡാറ്റ എടുക്കാൻ
+        fetchData();
+    </script>
+</body>
+</html>
