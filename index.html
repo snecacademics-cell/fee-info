@@ -4,82 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fee WhatsApp Sender</title>
+    <!-- എക്സൽ ഫയൽ റീഡ് ചെയ്യാനുള്ള ലൈബ്രറി -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
-        table { border-collapse: collapse; width: 100%; background: white; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .upload-section { background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ccc; }
+        table { border-collapse: collapse; width: 100%; background: white; margin-top: 20px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #4CAF50; color: white; }
         .btn { padding: 10px 15px; margin: 5px; cursor: pointer; color: white; border: none; border-radius: 5px; font-size: 14px;}
         .btn-whatsapp { background: #25D366; }
         .btn-archive { background: #d9534f; }
+        .btn-upload { background: #007BFF; }
         .controls { margin-bottom: 15px; }
     </style>
 </head>
 <body>
     <h2>സ്റ്റുഡന്റ് ഫീസ് & വാട്സാപ്പ് സിസ്റ്റം</h2>
     
+    <!-- ഫയൽ അപ്‌ലോഡ് ചെയ്യാനുള്ള ഭാഗം -->
+    <div class="upload-section">
+        <h3>പുതിയ ഫീസ് ഷീറ്റ് അപ്‌ലോഡ് ചെയ്യുക</h3>
+        <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
+        <button class="btn btn-upload" onclick="handleFileUpload()">ഷീറ്റിലേക്ക് സേവ് ചെയ്യുക</button>
+        <p style="font-size: 12px; color: #555;">(ഇവിടെ അപ്‌ലോഡ് ചെയ്യുന്ന ഡാറ്റ നിങ്ങളുടെ ഗൂഗിൾ ഷീറ്റിലേക്ക് ഓട്ടോമാറ്റിക് ആയി സേവ് ആകുന്നതാണ്)</p>
+    </div>
+
     <div class="controls">
         <button class="btn btn-whatsapp" onclick="sendWhatsAppMessages()">തിരഞ്ഞെടുത്തവർക്ക് മെസ്സേജ് അയക്കുക</button>
         <button class="btn btn-archive" onclick="archiveData()">പഴയ ഡാറ്റ ആർക്കൈവ് ചെയ്യുക (Archive)</button>
     </div>
     
-    <table id="dataTable">
-        <thead>
-            <tr>
-                <th><input type="checkbox" id="selectAll" onclick="toggleAll()"> എല്ലാം തിരഞ്ഞെടുക്കുക</th>
-                <th>കുട്ടിയുടെ പേര്</th>
-                <th>രക്ഷിതാവ്</th>
-                <th>മൊബൈൽ (F)</th>
-                <th>മൊത്തം ഫീസ് (Total)</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody">
-            <tr><td colspan="5">ഡാറ്റ ലോഡ് ചെയ്യുന്നു... ദയവായി കാത്തിരിക്കുക.</td></tr>
-        </tbody>
-    </table>
+    <div style="overflow-x:auto;">
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAll" onclick="toggleAll()"> എല്ലാം</th>
+                    <th>കുട്ടിയുടെ പേര്</th>
+                    <th>രക്ഷിതാവ്</th>
+                    <th>മൊബൈൽ</th>
+                    <th>Monthly</th>
+                    <th>Exam</th>
+                    <th>Medical</th>
+                    <th>Mess</th>
+                    <th>Stationary</th>
+                    <th>Others</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr><td colspan="11">ഡാറ്റ ലോഡ് ചെയ്യുന്നു... ദയവായി കാത്തിരിക്കുക.</td></tr>
+            </tbody>
+        </table>
+    </div>
 
     <script>
-        // അപ്ഡേറ്റ് ചെയ്ത ഗൂഗിൾ ആപ്സ് സ്ക്രിപ്റ്റ് Web App URL
-        const webAppUrl = 'https://script.google.com/macros/s/AKfycbyf9nZcYnPRR43JNIxt1L8OJ2opDBHKn1E7_VYK9SAlBXDdlfVZPNdDjxLQUhBC-Rf5Hw/exec';
+        // ഇവിടെ നിങ്ങളുടെ പുതിയ ഗൂഗിൾ ആപ്സ് സ്ക്രിപ്റ്റ് Web App URL നൽകുക
+        const webAppUrl = 'https://script.google.com/macros/s/AKfycbymr6-kuDTjBkR_W74kTJ_IxA8oX0Drh4wdEKqStjadxYIaIGXAqFssBeMpqDC0-xp6sg/exec';
         let studentData = [];
 
-        // ഗൂഗിൾ ഷീറ്റിൽ നിന്നും ഡാറ്റ എടുക്കുന്നതിനുള്ള ഫംഗ്ഷൻ
+        // ഗൂഗിൾ ഷീറ്റിൽ നിന്നും ഡാറ്റ എടുക്കുന്നു
         async function fetchData() {
             try {
                 const response = await fetch(webAppUrl);
                 studentData = await response.json();
                 populateTable();
             } catch (error) {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5">ഡാറ്റ എടുക്കുന്നതിൽ തകരാർ സംഭവിച്ചു.</td></tr>';
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11">ഡാറ്റ എടുക്കുന്നതിൽ തകരാർ സംഭവിച്ചു.</td></tr>';
             }
         }
 
-        // ടേബിളിൽ ഡാറ്റ കാണിക്കുന്നതിനുള്ള ഫംഗ്ഷൻ
+        // ടേബിളിൽ വിവരങ്ങൾ കാണിക്കുന്നു
         function populateTable() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
             
             if(studentData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5">ഷീറ്റിൽ ഡാറ്റയൊന്നും ഇല്ല.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="11">ഷീറ്റിൽ ഡാറ്റയൊന്നും ഇല്ല.</td></tr>';
                 return;
             }
 
             studentData.forEach((student, index) => {
-                if(student['Total'] > 0) { // ഫീസ് ബാക്കിയുള്ളവരെ മാത്രം കാണിക്കാൻ
+                if(student['Total'] > 0) { 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td><input type="checkbox" class="student-checkbox" data-index="${index}"></td>
-                        <td>${student['Name']}</td>
-                        <td>${student['Father']}</td>
-                        <td>${student['Mobile (F)']}</td>
-                        <td>₹${student['Total']}</td>
+                        <td>${student['Name'] || ''}</td>
+                        <td>${student['Father'] || ''}</td>
+                        <td>${student['Mobile (F)'] || ''}</td>
+                        <td>${student['Monthly Fee'] || 0}</td>
+                        <td>${student['Exam Fee'] || 0}</td>
+                        <td>${student['Medical'] || 0}</td>
+                        <td>${student['Mess Fee'] || 0}</td>
+                        <td>${student['Stationary'] || 0}</td>
+                        <td>${student['Others'] || 0}</td>
+                        <td><strong>₹${student['Total'] || 0}</strong></td>
                     `;
                     tbody.appendChild(tr);
                 }
             });
         }
 
-        // എല്ലാ ചെക്ക്ബോക്സുകളും ഒരുമിച്ച് ടിക്ക് ചെയ്യാൻ
         function toggleAll() {
             const selectAll = document.getElementById('selectAll').checked;
             const checkboxes = document.querySelectorAll('.student-checkbox');
@@ -100,30 +125,71 @@
                 const phone = student['Mobile (F)']; 
                 
                 if (phone) {
-                    // അയക്കേണ്ട മെസ്സേജ് ഇവിടെ മാറ്റാം
-                    const message = `നമസ്കാരം ${student['Father']},\n${student['Name']}-ന്റെ ഈ മാസത്തെ ഫീസ് ഇനത്തിൽ ₹${student['Total']} അടക്കാൻ ബാക്കിയുണ്ട്. ദയവായി അടക്കാൻ ശ്രദ്ധിക്കുമല്ലോ.`;
+                    let breakdown = '';
+                    if(student['Monthly Fee']) breakdown += `Monthly Fee: ₹${student['Monthly Fee']}\n`;
+                    if(student['Exam Fee']) breakdown += `Exam Fee: ₹${student['Exam Fee']}\n`;
+                    if(student['Medical']) breakdown += `Medical: ₹${student['Medical']}\n`;
+                    if(student['Mess Fee']) breakdown += `Mess Fee: ₹${student['Mess Fee']}\n`;
+                    if(student['Stationary']) breakdown += `Stationary: ₹${student['Stationary']}\n`;
+                    if(student['Others']) breakdown += `Others: ₹${student['Others']}\n`;
+
+                    const message = `പ്രിയപ്പെട്ട ${student['Father'] || ''},\nനിങ്ങളുടെ മകൾ ${student['Class'] || ''} ${student['Ad No'] || ''} ${student['Name']} എന്ന വിദ്യാർത്ഥിനിയുടെ OCTOBER മാസത്തിലെത് ഉൾപ്പെടെ Course fee താഴെ പറയുന്നവയാണ്:\n\n${breakdown}\nആകെ അടക്കേണ്ട തുക (Total): ₹${student['Total']}\n\nഈ തുക 05/10/2026-ന് മുമ്പ് അടച്ചു തീർക്കേണ്ടതാണ്.\n\nഫീ ഓഫീസിൽ നേരിട്ട് എത്തിക്കുകയോ താഴെ നൽകിയിരിക്കുന്ന അക്കൗണ്ടിലേക്ക് അയച്ച് സ്ക്രീൻ ഷോട്ട് /റസിപ്പറ്റി ന്റെ ഫോട്ടോ കുട്ടിയുടെ പേര്,ക്ലാസ്സ്‌ എന്നിവ 9447810041 എന്ന വാട്സാപ്പ് നമ്പറിലേക്ക് അയക്കുകയോ ചെയ്യുക\n(Transaction ID യും തിയ്യതിയും കാണുന്ന രീതിയിൽ അയക്കാൻ ശ്രദ്ധിക്കുക.)\n\nAc No: 16470200012711\nName: Crescent SNEC She Campus \nFederal Bank of India\nChelari\nIFSC : FDRL0001647`;
                     
-                    // ഇന്ത്യയുടെ കോഡ് (91) ഡിഫോൾട്ട് ആയി നൽകിയിട്ടുണ്ട്
                     const whatsappUrl = `https://wa.me/91${phone}?text=${encodeURIComponent(message)}`;
-                    
-                    // ഓരോരുത്തർക്കും മെസ്സേജ് അയക്കാൻ പുതിയ ടാബ് ഓപ്പൺ ആകും
                     window.open(whatsappUrl, '_blank');
                 }
             });
         }
 
-        // പഴയ ഡാറ്റ മാറ്റാൻ (Archive)
+        // എക്സൽ ഫയൽ അപ്‌ലോഡ് ചെയ്യാൻ
+        function handleFileUpload() {
+            const fileInput = document.getElementById('excelFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert("ദയവായി ഒരു ഫയൽ തിരഞ്ഞെടുക്കുക!");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                // ഫയലിലെ ഡാറ്റ Array ആയി മാറ്റുന്നു
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                
+                if(jsonData.length > 0) {
+                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="11">ഗൂഗിൾ ഷീറ്റിലേക്ക് ഡാറ്റ സേവ് ചെയ്യുന്നു... ദയവായി കാത്തിരിക്കുക.</td></tr>';
+                    
+                    fetch(webAppUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ action: "upload", sheetData: jsonData })
+                    }).then(() => {
+                        alert("പുതിയ ഡാറ്റ വിജയകരമായി അപ്‌ലോഡ് ചെയ്തു!");
+                        fetchData(); // പുതിയ ഡാറ്റ വീണ്ടും ലോഡ് ചെയ്യുന്നു
+                    }).catch(err => {
+                        alert("അപ്‌ലോഡ് ചെയ്യുന്നതിൽ തകരാർ!");
+                    });
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
         async function archiveData() {
             if(confirm("ഈ മാസത്തെ ഡാറ്റ Archive ഷീറ്റിലേക്ക് മാറ്റട്ടെ? മെയിൻ ഷീറ്റിലെ ഡാറ്റ മാഞ്ഞുപോകും.")) {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="5">ഡാറ്റ മാറ്റുന്നു...</td></tr>';
-                const response = await fetch(webAppUrl + "?action=archive");
-                const result = await response.json();
-                alert(result.message);
-                fetchData(); // പുതിയ ഡാറ്റ വീണ്ടും ലോഡ് ചെയ്യുക
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11">ഡാറ്റ മാറ്റുന്നു...</td></tr>';
+                await fetch(webAppUrl + "?action=archive");
+                alert("പഴയ ഡാറ്റ ആർക്കൈവ് ചെയ്തു.");
+                fetchData(); 
             }
         }
 
-        // പേജ് ലോഡ് ആകുമ്പോൾ തന്നെ ഡാറ്റ എടുക്കാൻ
         fetchData();
     </script>
 </body>
