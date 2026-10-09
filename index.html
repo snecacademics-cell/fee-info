@@ -6,62 +6,30 @@
     <title>Student Fees & WhatsApp System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; position: relative;}
-        h2 { color: #333; margin-bottom: 20px; }
-        
-        .upload-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background: #fff;
-            padding: 10px 15px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        
-        .upload-container input[type="file"] { font-size: 13px; }
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
+        .upload-container { display: flex; align-items: center; gap: 15px; background: #fff; padding: 10px 15px; border-radius: 5px; border: 1px solid #ddd; margin-bottom: 20px; }
         table { border-collapse: collapse; width: 100%; background: white; margin-top: 15px; font-size: 14px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #4CAF50; color: white; }
-        
         .btn { padding: 8px 12px; cursor: pointer; color: white; border: none; border-radius: 4px; font-size: 13px; font-weight: bold;}
         .btn-whatsapp { background: #00e676; }
-        .btn-whatsapp:hover { background: #00c853; }
         .btn-archive { background: #e57373; margin-left: 10px; }
-        .btn-archive:hover { background: #ef5350; }
         .btn-upload { background: #5c6bc0; }
-        .btn-upload:hover { background: #3f51b5; }
-        
         .controls { display: flex; margin-bottom: 15px; }
-        .status-msg { font-size: 14px; color: #555; padding: 20px; text-align: center; }
 
-        /* Custom Popup Overlay */
+        /* പുതിയ വേഗത്തിലുള്ള കസ്റ്റം പോപ്പ്-അപ്പ് */
         .overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); z-index: 9999; justify-content: center; align-items: center;
         }
-
         .popup {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            max-width: 400px;
-            width: 90%;
+            background: white; padding: 30px; border-radius: 10px; text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-width: 400px; width: 90%;
         }
-
-        .popup h3 { margin-top: 0; color: #333; }
-        .popup p { color: #666; margin-bottom: 20px; }
-        .btn-next { background: #4CAF50; font-size: 15px; padding: 10px 20px;}
-        .btn-cancel { background: #d9534f; margin-left: 10px;}
+        .popup h3 { margin-top: 0; color: #333; font-size: 18px; }
+        .popup p { color: #555; margin-bottom: 25px; font-size: 15px; }
+        .btn-next { background: #25D366; font-size: 16px; padding: 12px 25px; width: 100%; margin-bottom: 10px;}
+        .btn-cancel { background: #d9534f; width: 100%; padding: 10px; margin-top: 5px;}
     </style>
 </head>
 <body>
@@ -96,25 +64,23 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <tr><td colspan="11" class="status-msg">Loading data... Please wait.</td></tr>
+                <tr><td colspan="11" style="text-align:center; padding:20px;">Loading data...</td></tr>
             </tbody>
         </table>
     </div>
 
-    <!-- Custom Popup -->
+    <!-- പോപ്പ്-അപ്പ് വിൻഡോ -->
     <div class="overlay" id="messageOverlay">
         <div class="popup">
-            <h3 id="popupTitle">Next Message</h3>
-            <p id="popupText">Click the button below to send a message to the next student.</p>
+            <h3 id="popupTitle">അടുത്ത മെസ്സേജ് തയ്യാറാണ്</h3>
+            <p id="popupText">തുടരാൻ താഴെ ക്ലിക്ക് ചെയ്യുക.</p>
             <button class="btn btn-next" onclick="processQueue()">Send Next Message</button>
             <button class="btn btn-cancel" onclick="cancelSending()">Cancel</button>
         </div>
     </div>
 
     <script>
-        // നിങ്ങളുടെ ഗൂഗിൾ ആപ്സ് സ്ക്രിപ്റ്റ് ലിങ്ക് ഇവിടെ നൽകുക
         const webAppUrl = 'https://script.google.com/macros/s/AKfycbymr6-kuDTjBkR_W74kTJ_IxA8oX0Drh4wdEKqStjadxYIaIGXAqFssBeMpqDC0-xp6sg/exec';
-        
         let studentData = [];
         let messagesQueue = []; 
 
@@ -124,19 +90,17 @@
                 studentData = await response.json();
                 populateTable();
             } catch (error) {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg" style="color:red;">Error loading data. Please check the Web App URL.</td></tr>';
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" style="color:red; text-align:center;">Error loading data.</td></tr>';
             }
         }
 
         function populateTable() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            
             if(studentData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11" class="status-msg">No data found in the sheet.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;">No data found.</td></tr>';
                 return;
             }
-
             studentData.forEach((student, index) => {
                 if(student['Total'] > 0) { 
                     const tr = document.createElement('tr');
@@ -160,16 +124,14 @@
 
         function toggleAll() {
             const selectAll = document.getElementById('selectAll').checked;
-            const checkboxes = document.querySelectorAll('.student-checkbox');
-            checkboxes.forEach(cb => cb.checked = selectAll);
+            document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = selectAll);
         }
 
         function startSendingMessages() {
             messagesQueue = [];
             const checkboxes = document.querySelectorAll('.student-checkbox:checked');
-            
             if(checkboxes.length === 0) {
-                alert("Please select at least one student.");
+                alert("ദയവായി കുട്ടികളെ തിരഞ്ഞെടുക്കുക!");
                 return;
             }
 
@@ -177,7 +139,6 @@
                 const index = cb.getAttribute('data-index');
                 const student = studentData[index];
                 const phone = student['Mobile (F)']; 
-                
                 if (phone) {
                     let breakdown = '';
                     if(student['Monthly Fee']) breakdown += `Monthly Fee: ₹${student['Monthly Fee']}\n`;
@@ -205,19 +166,23 @@
                 const nextMessage = messagesQueue.shift(); 
                 const whatsappUrl = `https://web.whatsapp.com/send?phone=91${nextMessage.phone}&text=${encodeURIComponent(nextMessage.message)}`;
                 
+                // വാട്സാപ്പ് തുറക്കുന്നു
                 window.open(whatsappUrl, '_blank');
                 nextMessage.checkbox.checked = false; 
 
+                // പെട്ടെന്ന് തന്നെ പോപ്പ്-അപ്പ് വരാൻ 500ms സമയം മാത്രം
                 if (messagesQueue.length > 0) {
-                    // Update popup text for the next student
-                    document.getElementById('popupText').innerText = `Next message is for: ${messagesQueue[0].studentName}`;
-                    // Show custom popup after a short delay
+                    document.getElementById('popupText').innerHTML = `അടുത്ത മെസ്സേജ് അയക്കേണ്ടത്: <br><strong style="font-size:18px; color:#d9534f;">${messagesQueue[0].studentName}</strong>`;
                     setTimeout(() => {
                         document.getElementById('messageOverlay').style.display = 'flex';
-                    }, 1000);
+                    }, 500);
                 } else {
                     setTimeout(() => {
-                        alert("All messages have been sent!");
+                        document.getElementById('messageOverlay').style.display = 'flex';
+                        document.getElementById('popupTitle').innerText = 'പൂർത്തിയായി';
+                        document.getElementById('popupText').innerText = 'എല്ലാ മെസ്സേജുകളും അയച്ചു കഴിഞ്ഞു!';
+                        document.querySelector('.btn-next').style.display = 'none';
+                        document.querySelector('.btn-cancel').innerText = 'Close';
                     }, 500);
                 }
             }
@@ -226,60 +191,46 @@
         function cancelSending() {
             messagesQueue = [];
             document.getElementById('messageOverlay').style.display = 'none';
+            document.querySelector('.btn-next').style.display = 'inline-block';
+            document.querySelector('.btn-cancel').innerText = 'Cancel';
+            document.getElementById('popupTitle').innerText = 'അടുത്ത മെസ്സേജ് തയ്യാറാണ്';
         }
 
         function handleFileUpload() {
             const fileInput = document.getElementById('excelFile');
             const file = fileInput.files[0];
-            
-            if (!file) {
-                alert("Please select a file to upload.");
-                return;
-            }
+            if (!file) { alert("ഫയൽ തിരഞ്ഞെടുക്കുക."); return; }
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type: 'array'});
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                
                 const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
                 
                 if(jsonData.length > 0) {
-                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg">Uploading data to Google Sheet... Please wait.</td></tr>';
-                    
+                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" style="text-align:center;">Uploading...</td></tr>';
                     fetch(webAppUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        method: 'POST', mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ action: "upload", sheetData: jsonData })
                     }).then(() => {
-                        alert("Data uploaded successfully!");
-                        fetchData(); 
-                    }).catch(err => {
-                        alert("Error uploading data.");
-                    });
+                        alert("Uploaded successfully!"); fetchData(); 
+                    }).catch(err => { alert("Error uploading."); });
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
         async function archiveData() {
-            if(confirm("Are you sure you want to archive this month's data? The main sheet will be cleared.")) {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg">Archiving data... Please wait.</td></tr>';
+            if(confirm("പഴയ ഡാറ്റ Archive ചെയ്യണോ?")) {
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" style="text-align:center;">Archiving...</td></tr>';
                 try {
                     await fetch(webAppUrl + "?action=archive");
-                    alert("Data archived successfully.");
-                    fetchData(); 
-                } catch(error) {
-                    alert("Error archiving data.");
-                    fetchData();
-                }
+                    alert("Archived successfully."); fetchData(); 
+                } catch(error) { alert("Error."); fetchData(); }
             }
         }
-
         fetchData();
     </script>
 </body>
