@@ -4,63 +4,220 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Student Fees & WhatsApp System</title>
+    <!-- Excel File Reader -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6.4.0 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        body { font-family: 'Poppins', sans-serif; margin: 0; padding: 20px; background-color: #f0f4f8; color: #333; }
-        .app-container { max-width: 1200px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); }
-        h2 { color: #1e293b; margin-bottom: 25px; text-align: center; font-weight: 600; font-size: 24px; }
+        /* SNEC Academics Premium Capsule Design Tokens */
+        :root {
+            --font-family: 'Segoe UI', sans-serif;
+            --primary-grad: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --sidebar-dark: #1e1e2f;
+            --text-muted: #cbd5e1;
+            --bg-light: #f4f6f9;
+            --success: #05c46b;
+            --error: #fc5c65;
+            --info: #4b7bec;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body { 
+            font-family: var(--font-family); 
+            margin: 0; 
+            background-color: var(--bg-light); 
+            color: #333; 
+            padding-bottom: 30px;
+        }
+
+        /* Top Navigation Header (Sidebar Dark Theme applied as Topbar for mobile readiness) */
+        .header {
+            background-color: var(--sidebar-dark);
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header h2 {
+            color: var(--text-muted);
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header h2 span { color: #fff; }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* Capsule Borders & Cards */
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px; /* Standard Section Cards */
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+
+        /* Pill Buttons */
+        .pill-btn {
+            border-radius: 50px; /* Pure Pill Shape */
+            padding: 12px 25px;
+            cursor: pointer;
+            color: white;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px; /* standard gap */
+            min-height: 44px; /* Touch targets constraint */
+        }
         
-        .upload-container { display: flex; flex-wrap: wrap; align-items: center; gap: 15px; background: #f8fafc; padding: 20px; border-radius: 8px; border: 2px dashed #cbd5e1; margin-bottom: 25px; }
-        .upload-container input[type="file"] { font-size: 14px; flex: 1; min-width: 200px; }
+        .pill-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
 
-        .btn { padding: 12px 20px; cursor: pointer; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-        .btn-whatsapp { background: linear-gradient(135deg, #25D366, #128C7E); }
-        .btn-archive { background: linear-gradient(135deg, #ef4444, #dc2626); }
-        .btn-upload { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .btn-primary { background: var(--primary-grad); }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--error); }
+        .btn-info { background: var(--info); }
+        .btn-outline { background: transparent; border: 2px solid var(--text-muted); color: var(--text-muted); }
+        .btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+        /* Upload Section */
+        .upload-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        input[type="file"] {
+            border: 2px dashed #cbd5e1;
+            padding: 10px 15px;
+            border-radius: 30px; /* Sub-menus/boxes */
+            flex: 1;
+            min-width: 250px;
+            font-family: var(--font-family);
+            background: #f8fafc;
+            min-height: 44px;
+            outline: none;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        /* Data Table */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            background: white;
+            border: 1px solid #e2e8f0;
+        }
+
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 14px; }
+        th, td { border-bottom: 1px solid #e2e8f0; padding: 15px 20px; text-align: left; }
+        th { background: #f8fafc; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 12px; }
+        tr:hover { background-color: #f1f5f9; }
+
+        /* Custom Modals (Zero-Native Dialog Rule) */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(30, 30, 47, 0.7); z-index: 9999; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-card {
+            background: white; padding: 35px 25px; border-radius: 30px; /* Rounded Capsule */
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-width: 420px; width: 90%;
+        }
+        .modal-icon { font-size: 45px; margin-bottom: 15px; }
+        .modal-card h3 { margin: 0 0 10px 0; color: var(--sidebar-dark); font-size: 20px; }
+        .modal-card p { color: #64748b; margin-bottom: 25px; font-size: 15px; line-height: 1.5; }
+        .modal-actions { display: flex; gap: 15px; justify-content: center; }
         
-        .controls { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
+        /* Auth Screen */
+        .auth-overlay {
+            display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--sidebar-dark); z-index: 10000; justify-content: center; align-items: center;
+        }
+        .auth-card {
+            background: white; padding: 40px; border-radius: 30px;
+            text-align: center; max-width: 350px; width: 90%;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+        .auth-card input {
+            width: 100%; padding: 15px; border-radius: 50px; border: 1px solid #cbd5e1;
+            margin: 20px 0; font-size: 15px; outline: none; box-sizing: border-box; text-align: center;
+            font-family: var(--font-family); transition: var(--transition);
+        }
+        .auth-card input:focus { border-color: var(--info); box-shadow: 0 0 0 3px rgba(75, 123, 236, 0.2); }
 
-        .table-wrapper { overflow-x: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        table { border-collapse: collapse; width: 100%; background: white; white-space: nowrap; font-size: 14px; }
-        th, td { border-bottom: 1px solid #e2e8f0; padding: 15px; text-align: left; }
-        th { background-color: #f1f5f9; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; }
-        tr:hover { background-color: #f8fafc; }
-        .status-msg { font-size: 14px; color: #555; padding: 20px; text-align: center; }
-
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-        .popup { background: white; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-width: 400px; width: 85%; }
-        .popup h3 { margin-top: 0; color: #1e293b; font-size: 18px; font-weight: 600; }
-        .popup p { color: #64748b; margin-bottom: 25px; font-size: 15px; }
-        .btn-next { background: linear-gradient(135deg, #25D366, #128C7E); font-size: 16px; padding: 12px 25px; width: 100%; margin-bottom: 10px;}
-        .btn-cancel { background: #cbd5e1; color: #475569; width: 100%; padding: 12px; margin-top: 5px; font-weight: 600;}
-        .btn-cancel:hover { background: #e2e8f0; color: #1e293b; box-shadow: none; transform: none;}
-
-        @media (max-width: 600px) {
-            body { padding: 10px; }
-            .app-container { padding: 15px; }
-            .btn { width: 100%; }
-            .upload-container { flex-direction: column; align-items: stretch; text-align: center; }
-            h2 { font-size: 20px; margin-bottom: 15px;}
-            .controls { flex-direction: column; gap: 10px; }
+        @media (max-width: 768px) {
+            .app-container { margin: 15px auto; }
+            .pill-btn { width: 100%; }
+            .upload-wrapper { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
 <body>
 
+<!-- Login / Auth Screen -->
+<div class="auth-overlay" id="loginScreen">
+    <div class="auth-card">
+        <i class="fa-solid fa-user-shield" style="font-size: 50px; color: var(--primary-grad); color: #2a5298;"></i>
+        <h3 style="margin: 15px 0 5px;">Admin Login</h3>
+        <p style="color: #64748b; font-size: 14px; margin:0;">Enter credentials to access dashboard</p>
+        <input type="password" id="authPassword" placeholder="Enter Password" class="enter-nav">
+        <button class="pill-btn btn-primary" style="width: 100%;" onclick="handleLogin()">
+            <span>Login Now</span> <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Main App UI -->
+<div class="header">
+    <h2><i class="fa-solid fa-graduation-cap"></i> <span>SNEC Academics</span> Portal</h2>
+    <button class="pill-btn btn-outline" style="padding: 8px 15px; min-height: 38px; font-size: 13px;" onclick="handleLogout()">
+        <i class="fa-solid fa-sign-out-alt"></i> Logout
+    </button>
+</div>
+
 <div class="app-container">
-    <h2>Student Fees & WhatsApp System</h2>
     
-    <div class="upload-container">
-        <strong style="font-size: 14px; color: #475569;">Upload New Sheet:</strong>
-        <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
-        <button class="btn btn-upload" onclick="handleFileUpload()">Upload & Save</button>
+    <div class="card">
+        <h3 style="margin-top:0; color: #1e293b; font-size: 16px;"><i class="fa-solid fa-cloud-arrow-up" style="color:var(--info)"></i> Data Management</h3>
+        <div class="upload-wrapper">
+            <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" class="enter-nav">
+            <button class="pill-btn btn-info" onclick="handleFileUpload()">
+                <i class="fa-solid fa-upload"></i> Upload & Sync Sheet
+            </button>
+        </div>
     </div>
 
     <div class="controls">
-        <button class="btn btn-whatsapp" onclick="startSendingMessages()">Send WhatsApp Message</button>
-        <button class="btn btn-archive" onclick="archiveData()">Archive Old Data</button>
+        <button class="pill-btn btn-success" onclick="startSendingMessages()">
+            <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> Send WhatsApp Messages
+        </button>
+        <button class="pill-btn btn-danger" onclick="archiveData()">
+            <i class="fa-solid fa-box-archive"></i> Archive Old Data
+        </button>
     </div>
     
     <div class="table-wrapper">
@@ -81,53 +238,166 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <tr><td colspan="11" class="status-msg">Loading data... Please wait.</td></tr>
+                <tr><td colspan="11" style="text-align: center; padding: 30px; color: #64748b;">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Loading data...
+                </td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<div class="overlay" id="messageOverlay">
-    <div class="popup">
-        <h3 id="popupTitle">അടുത്ത മെസ്സേജ് തയ്യാറാണ്</h3>
-        <p id="popupText">തുടരാൻ താഴെ ക്ലിക്ക് ചെയ്യുക.</p>
-        <button class="btn btn-next" onclick="processQueue()">Send Next Message</button>
-        <button class="btn btn-cancel" onclick="cancelSending()">Cancel</button>
+<!-- Custom Modals Setup (Zero-Native Dialog) -->
+<!-- Alert Modal -->
+<div class="modal-overlay" id="alertModal">
+    <div class="modal-card">
+        <div class="modal-icon" id="alertIcon"></div>
+        <h3 id="alertTitle">Notification</h3>
+        <p id="alertMessage">Message goes here.</p>
+        <button class="pill-btn btn-primary" style="width: 100%;" onclick="CustomUI.closeAlert()">
+            <i class="fa-solid fa-check"></i> Okay
+        </button>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal-card">
+        <div class="modal-icon"><i class="fa-solid fa-circle-question" style="color:var(--info);"></i></div>
+        <h3 id="confirmTitle">Confirm Action</h3>
+        <p id="confirmMessage">Are you sure you want to proceed?</p>
+        <div class="modal-actions">
+            <button class="pill-btn btn-danger" style="flex:1;" id="confirmYesBtn"><i class="fa-solid fa-check"></i> Yes</button>
+            <button class="pill-btn" style="flex:1; background: #cbd5e1; color:#1e293b;" onclick="CustomUI.closeConfirm()"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- WhatsApp Queue Modal -->
+<div class="modal-overlay" id="queueModal">
+    <div class="modal-card">
+        <div class="modal-icon"><i class="fa-brands fa-whatsapp" style="color:var(--success);"></i></div>
+        <h3>Next Message Ready</h3>
+        <p id="queueText">Proceed to next student?</p>
+        <button class="pill-btn btn-success" style="width: 100%; margin-bottom: 10px;" onclick="processQueue()">
+            <i class="fa-solid fa-paper-plane"></i> Send Next Message
+        </button>
+        <button class="pill-btn" style="width: 100%; background: #cbd5e1; color:#1e293b;" onclick="cancelSending()">
+            <i class="fa-solid fa-ban"></i> Cancel Queue
+        </button>
     </div>
 </div>
 
 <script>
-    // നിങ്ങൾ നൽകിയ പുതിയ ലിങ്ക്
-    const webAppUrl = 'https://script.google.com/macros/s/AKfycbymr6-kuDTjBkR_W74kTJ_IxA8oX0Drh4wdEKqStjadxYIaIGXAqFssBeMpqDC0-xp6sg/exec';
-    
+    // System Configurations
+    const CONFIG = {
+        WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbymr6-kuDTjBkR_W74kTJ_IxA8oX0Drh4wdEKqStjadxYIaIGXAqFssBeMpqDC0-xp6sg/exec',
+        PASSWORD: 'admin' // സ്ഥിരമായ പാസ്‌വേഡ് 
+    };
+
     let studentData = [];
     let messagesQueue = []; 
 
+    // --- Custom UI Controllers (Zero-Native Rule) ---
+    const CustomUI = {
+        alert: function(title, msg, type = 'info') {
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerText = msg;
+            let iconHTML = '<i class="fa-solid fa-circle-info" style="color:var(--info);"></i>';
+            if(type === 'success') iconHTML = '<i class="fa-solid fa-circle-check" style="color:var(--success);"></i>';
+            if(type === 'error') iconHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:var(--error);"></i>';
+            document.getElementById('alertIcon').innerHTML = iconHTML;
+            document.getElementById('alertModal').style.display = 'flex';
+        },
+        closeAlert: function() { document.getElementById('alertModal').style.display = 'none'; },
+        confirm: function(title, msg, onConfirm) {
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMessage').innerText = msg;
+            document.getElementById('confirmModal').style.display = 'flex';
+            document.getElementById('confirmYesBtn').onclick = () => {
+                document.getElementById('confirmModal').style.display = 'none';
+                onConfirm();
+            };
+        },
+        closeConfirm: function() { document.getElementById('confirmModal').style.display = 'none'; }
+    };
+
+    // --- Auth & Session Persistence ---
+    function checkAuth() {
+        if(localStorage.getItem('snec_auth') === 'true') {
+            document.getElementById('loginScreen').style.display = 'none';
+            fetchData();
+        } else {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('authPassword').focus();
+        }
+    }
+
+    function handleLogin() {
+        const pass = document.getElementById('authPassword').value;
+        if(pass === CONFIG.PASSWORD) {
+            localStorage.setItem('snec_auth', 'true');
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('authPassword').value = '';
+            fetchData();
+        } else {
+            CustomUI.alert("Login Failed", "Incorrect password. Please try again.", "error");
+        }
+    }
+
+    function handleLogout() {
+        localStorage.removeItem('snec_auth');
+        document.getElementById('loginScreen').style.display = 'flex';
+        // Hide tables/queues immediately
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" style="text-align:center;">Logged out.</td></tr>';
+        studentData = [];
+    }
+
+    // --- Enter as Tab Navigation logic ---
+    document.addEventListener('keydown', function(e) {
+        if(e.key === 'Enter') {
+            const activeElem = document.activeElement;
+            if(activeElem.id === 'authPassword') {
+                e.preventDefault();
+                handleLogin();
+                return;
+            }
+            if(activeElem.tagName === 'INPUT' && !activeElem.classList.contains('no-enter')) {
+                e.preventDefault();
+                const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]), button.pill-btn'));
+                const index = inputs.indexOf(activeElem);
+                if (index > -1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            }
+        }
+    });
+
+    // --- Data Fetching ---
     async function fetchData() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 30px;"><i class="fa-solid fa-spinner fa-spin"></i> Fetching records...</td></tr>';
         try {
-            const response = await fetch(webAppUrl);
+            const response = await fetch(CONFIG.WEB_APP_URL);
             studentData = await response.json();
             populateTable();
         } catch (error) {
-            document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg" style="color:#ef4444;">Error loading data. Please check if the Web App URL is correctly deployed.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" style="color:var(--error); text-align:center;">Data connection failed. Please check network.</td></tr>';
         }
     }
 
     function populateTable() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
-        
         if(!studentData || studentData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="11" class="status-msg">No data found in the sheet.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding: 20px;">No records found.</td></tr>';
             return;
         }
-
         studentData.forEach((student, index) => {
             if(student['Total'] > 0) { 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><input type="checkbox" class="student-checkbox" data-index="${index}"></td>
-                    <td><strong>${student['Name'] || ''}</strong></td>
+                    <td style="font-weight: 500; color: var(--sidebar-dark);">${student['Name'] || ''}</td>
                     <td>${student['Father'] || ''}</td>
                     <td>${student['Mobile (F)'] || ''}</td>
                     <td>${student['Monthly Fee'] || 0}</td>
@@ -136,7 +406,7 @@
                     <td>${student['Mess Fee'] || 0}</td>
                     <td>${student['Stationary'] || 0}</td>
                     <td>${student['Others'] || 0}</td>
-                    <td style="color:#2563eb;"><strong>₹${student['Total'] || 0}</strong></td>
+                    <td style="color:var(--info); font-weight: 600;">₹${student['Total'] || 0}</td>
                 `;
                 tbody.appendChild(tr);
             }
@@ -145,16 +415,16 @@
 
     function toggleAll() {
         const selectAll = document.getElementById('selectAll').checked;
-        const checkboxes = document.querySelectorAll('.student-checkbox');
-        checkboxes.forEach(cb => cb.checked = selectAll);
+        document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = selectAll);
     }
 
+    // --- WhatsApp Logic ---
     function startSendingMessages() {
         messagesQueue = [];
         const checkboxes = document.querySelectorAll('.student-checkbox:checked');
         
         if(checkboxes.length === 0) {
-            alert("ദയവായി മെസ്സേജ് അയക്കാൻ കുട്ടികളെ തിരഞ്ഞെടുക്കുക!");
+            CustomUI.alert("Selection Required", "Please select at least one student.", "error");
             return;
         }
 
@@ -178,13 +448,11 @@
             }
         });
 
-        if(messagesQueue.length > 0) {
-            processQueue();
-        }
+        if(messagesQueue.length > 0) processQueue();
     }
 
     function processQueue() {
-        document.getElementById('messageOverlay').style.display = 'none';
+        document.getElementById('queueModal').style.display = 'none';
 
          if (messagesQueue.length > 0) {
             const nextMessage = messagesQueue.shift(); 
@@ -194,36 +462,27 @@
             nextMessage.checkbox.checked = false; 
 
             if (messagesQueue.length > 0) {
-                document.getElementById('popupText').innerHTML = `അടുത്ത മെസ്സേജ് അയക്കേണ്ടത്: <br><strong style="font-size:18px; color:#3b82f6; display:block; margin-top:10px;">${messagesQueue[0].studentName}</strong>`;
-                setTimeout(() => {
-                    document.getElementById('messageOverlay').style.display = 'flex';
-                }, 500);
+                document.getElementById('queueText').innerHTML = `Next in line: <br><strong style="color:var(--info); font-size:16px;">${messagesQueue[0].studentName}</strong>`;
+                setTimeout(() => { document.getElementById('queueModal').style.display = 'flex'; }, 500);
             } else {
-                setTimeout(() => {
-                    document.getElementById('messageOverlay').style.display = 'flex';
-                    document.getElementById('popupTitle').innerText = 'പൂർത്തിയായി';
-                    document.getElementById('popupText').innerText = 'എല്ലാ മെസ്സേജുകളും വിജയകരമായി അയച്ചു കഴിഞ്ഞു!';
-                    document.querySelector('.btn-next').style.display = 'none';
-                    document.querySelector('.btn-cancel').innerText = 'Close';
-                }, 500);
+                setTimeout(() => { CustomUI.alert("Completed", "All WhatsApp messages have been dispatched successfully.", "success"); }, 500);
             }
         }
     }
 
     function cancelSending() {
         messagesQueue = [];
-        document.getElementById('messageOverlay').style.display = 'none';
-        document.querySelector('.btn-next').style.display = 'inline-block';
-        document.querySelector('.btn-cancel').innerText = 'Cancel';
-        document.getElementById('popupTitle').innerText = 'അടുത്ത മെസ്സേജ് തയ്യാറാണ്';
+        document.getElementById('queueModal').style.display = 'none';
+        CustomUI.alert("Cancelled", "Message queue has been cleared.", "info");
     }
 
+    // --- Upload & Archive ---
     function handleFileUpload() {
         const fileInput = document.getElementById('excelFile');
         const file = fileInput.files[0];
         
         if (!file) {
-            alert("ദയവായി ഒരു ഫയൽ തിരഞ്ഞെടുക്കുക.");
+            CustomUI.alert("File Missing", "Please select a valid Excel or CSV file to upload.", "error");
             return;
         }
 
@@ -235,19 +494,18 @@
             const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
             
             if(jsonData.length > 0) {
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg">Uploading data to Google Sheet... Please wait.</td></tr>';
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" style="text-align:center; padding:30px;"><i class="fa-solid fa-cloud-arrow-up fa-bounce"></i> Syncing to Google Sheets...</td></tr>';
                 
-                // CORS പ്രശ്നം ഒഴിവാക്കാനുള്ള മാറ്റങ്ങൾ ഇവിടെ നൽകിയിട്ടുണ്ട്
-                fetch(webAppUrl, {
+                fetch(CONFIG.WEB_APP_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: "upload", sheetData: jsonData })
                 }).then(() => {
-                    alert("ഡാറ്റ വിജയകരമായി അപ്‌ലോഡ് ചെയ്തു!");
+                    CustomUI.alert("Success", "Data successfully synced to the system.", "success");
                     setTimeout(fetchData, 1500); 
                 }).catch(err => {
-                    alert("അപ്‌ലോഡ് പരാജയപ്പെട്ടു!");
+                    CustomUI.alert("Sync Failed", "An error occurred while uploading. Please try again.", "error");
                     fetchData();
                 });
             }
@@ -255,21 +513,26 @@
         reader.readAsArrayBuffer(file);
     }
 
-    async function archiveData() {
-        if(confirm("പഴയ ഡാറ്റ Archive ചെയ്യണോ? മെയിൻ ഷീറ്റിലെ ഡാറ്റ മാഞ്ഞുപോകും.")) {
-            document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg">Archiving data... Please wait.</td></tr>';
-            try {
-                await fetch(webAppUrl + "?action=archive");
-                alert("പഴയ ഡാറ്റ ആർക്കൈവ് ചെയ്തു.");
-                fetchData(); 
-            } catch(error) {
-                alert("Error archiving data.");
-                fetchData();
+    function archiveData() {
+        CustomUI.confirm(
+            "Archive Data", 
+            "This will move current records to the Archive sheet and clear the active view. Are you sure?", 
+            async function() {
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" style="text-align:center; padding:30px;"><i class="fa-solid fa-box-archive fa-bounce"></i> Archiving data...</td></tr>';
+                try {
+                    await fetch(CONFIG.WEB_APP_URL + "?action=archive");
+                    CustomUI.alert("Archived", "Data has been successfully archived.", "success");
+                    fetchData(); 
+                } catch(error) {
+                    CustomUI.alert("Error", "Failed to archive data.", "error");
+                    fetchData();
+                }
             }
-        }
+        );
     }
 
-    fetchData();
+    // Initialize App
+    window.onload = checkAuth;
 </script>
 
 </body>
