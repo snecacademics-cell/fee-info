@@ -2,140 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- മൊബൈൽ റെസ്പോൺസീവ് ആക്കാനുള്ള ടാഗ് -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Student Fees & WhatsApp System</title>
-    <!-- എക്സൽ ഫയൽ റീഡ് ചെയ്യാനുള്ള ലൈബ്രറി -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- മികച്ച ഫോണ്ടിനായി Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            background-color: #f0f4f8; 
-            color: #333; 
-        }
+        body { font-family: 'Poppins', sans-serif; margin: 0; padding: 20px; background-color: #f0f4f8; color: #333; }
+        .app-container { max-width: 1200px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); }
+        h2 { color: #1e293b; margin-bottom: 25px; text-align: center; font-weight: 600; font-size: 24px; }
         
-        .app-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
-        }
+        .upload-container { display: flex; flex-wrap: wrap; align-items: center; gap: 15px; background: #f8fafc; padding: 20px; border-radius: 8px; border: 2px dashed #cbd5e1; margin-bottom: 25px; }
+        .upload-container input[type="file"] { font-size: 14px; flex: 1; min-width: 200px; }
 
-        h2 { 
-            color: #1e293b; 
-            margin-bottom: 25px; 
-            text-align: center;
-            font-weight: 600;
-            font-size: 24px;
-        }
-        
-        /* അപ്‌ലോഡ് സെക്ഷൻ ഡിസൈൻ */
-        .upload-container { 
-            display: flex; 
-            flex-wrap: wrap; 
-            align-items: center; 
-            gap: 15px; 
-            background: #f8fafc; 
-            padding: 20px; 
-            border-radius: 8px; 
-            border: 2px dashed #cbd5e1; 
-            margin-bottom: 25px; 
-        }
-        
-        .upload-container input[type="file"] { 
-            font-size: 14px; 
-            flex: 1;
-            min-width: 200px;
-        }
-
-        /* പ്രീമിയം ബട്ടണുകൾ */
-        .btn { 
-            padding: 12px 20px; 
-            cursor: pointer; 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            font-size: 14px; 
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        
-        .btn:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15); 
-        }
-        
+        .btn { padding: 12px 20px; cursor: pointer; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
         .btn-whatsapp { background: linear-gradient(135deg, #25D366, #128C7E); }
         .btn-archive { background: linear-gradient(135deg, #ef4444, #dc2626); }
         .btn-upload { background: linear-gradient(135deg, #3b82f6, #2563eb); }
         
-        .controls { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 15px; 
-            margin-bottom: 20px; 
-        }
+        .controls { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
 
-        /* ടേബിൾ ഡിസൈൻ */
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
-        }
-
-        table { 
-            border-collapse: collapse; 
-            width: 100%; 
-            background: white; 
-            white-space: nowrap; /* മൊബൈലിൽ ഡാറ്റ ചുരുങ്ങാതിരിക്കാൻ */
-            font-size: 14px; 
-        }
-        
-        th, td { 
-            border-bottom: 1px solid #e2e8f0; 
-            padding: 15px; 
-            text-align: left; 
-        }
-        
-        th { 
-            background-color: #f1f5f9; 
-            color: #475569; 
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-        }
-
+        .table-wrapper { overflow-x: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        table { border-collapse: collapse; width: 100%; background: white; white-space: nowrap; font-size: 14px; }
+        th, td { border-bottom: 1px solid #e2e8f0; padding: 15px; text-align: left; }
+        th { background-color: #f1f5f9; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; }
         tr:hover { background-color: #f8fafc; }
-        
         .status-msg { font-size: 14px; color: #555; padding: 20px; text-align: center; }
 
-        /* പോപ്പ്-അപ്പ് വിൻഡോയുടെ ഡിസൈൻ */
-        .overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.7); z-index: 9999; justify-content: center; align-items: center;
-            backdrop-filter: blur(4px);
-        }
-        .popup {
-            background: white; padding: 30px; border-radius: 12px; text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-width: 400px; width: 85%;
-        }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .popup { background: white; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-width: 400px; width: 85%; }
         .popup h3 { margin-top: 0; color: #1e293b; font-size: 18px; font-weight: 600; }
         .popup p { color: #64748b; margin-bottom: 25px; font-size: 15px; }
         .btn-next { background: linear-gradient(135deg, #25D366, #128C7E); font-size: 16px; padding: 12px 25px; width: 100%; margin-bottom: 10px;}
         .btn-cancel { background: #cbd5e1; color: #475569; width: 100%; padding: 12px; margin-top: 5px; font-weight: 600;}
         .btn-cancel:hover { background: #e2e8f0; color: #1e293b; box-shadow: none; transform: none;}
 
-        /* മൊബൈൽ ഫോണുകൾക്ക് വേണ്ടിയുള്ള പ്രത്യേക ഡിസൈൻ */
         @media (max-width: 600px) {
             body { padding: 10px; }
             .app-container { padding: 15px; }
@@ -186,7 +87,6 @@
     </div>
 </div>
 
-<!-- പോപ്പ്-അപ്പ് വിൻഡോ -->
 <div class="overlay" id="messageOverlay">
     <div class="popup">
         <h3 id="popupTitle">അടുത്ത മെസ്സേജ് തയ്യാറാണ്</h3>
@@ -197,24 +97,22 @@
 </div>
 
 <script>
-    // ഗൂഗിൾ ആപ്സ് സ്ക്രിപ്റ്റ് യുആർഎൽ
+    // നിങ്ങൾ നൽകിയ പുതിയ ലിങ്ക്
     const webAppUrl = 'https://script.google.com/macros/s/AKfycbymr6-kuDTjBkR_W74kTJ_IxA8oX0Drh4wdEKqStjadxYIaIGXAqFssBeMpqDC0-xp6sg/exec';
     
     let studentData = [];
     let messagesQueue = []; 
 
-    // ഡാറ്റ ലോഡ് ചെയ്യുന്നു
     async function fetchData() {
         try {
             const response = await fetch(webAppUrl);
             studentData = await response.json();
             populateTable();
         } catch (error) {
-            document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg" style="color:#ef4444;">Error loading data. Please check the Web App URL.</td></tr>';
+            document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg" style="color:#ef4444;">Error loading data. Please check if the Web App URL is correctly deployed.</td></tr>';
         }
     }
 
-    // ടേബിൾ നിർമ്മിക്കുന്നു
     function populateTable() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
@@ -245,14 +143,12 @@
         });
     }
 
-    // എല്ലാം തിരഞ്ഞെടുക്കാൻ
     function toggleAll() {
         const selectAll = document.getElementById('selectAll').checked;
         const checkboxes = document.querySelectorAll('.student-checkbox');
         checkboxes.forEach(cb => cb.checked = selectAll);
     }
 
-    // മെസ്സേജ് ക്യൂ തയ്യാറാക്കുന്നു
     function startSendingMessages() {
         messagesQueue = [];
         const checkboxes = document.querySelectorAll('.student-checkbox:checked');
@@ -287,7 +183,6 @@
         }
     }
 
-    // മെസ്സേജ് അയക്കുന്നു
     function processQueue() {
         document.getElementById('messageOverlay').style.display = 'none';
 
@@ -315,7 +210,6 @@
         }
     }
 
-    // റദ്ദാക്കുന്നു
     function cancelSending() {
         messagesQueue = [];
         document.getElementById('messageOverlay').style.display = 'none';
@@ -343,17 +237,15 @@
             if(jsonData.length > 0) {
                 document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg">Uploading data to Google Sheet... Please wait.</td></tr>';
                 
+                // CORS പ്രശ്നം ഒഴിവാക്കാനുള്ള മാറ്റങ്ങൾ ഇവിടെ നൽകിയിട്ടുണ്ട്
                 fetch(webAppUrl, {
                     method: 'POST',
-                    mode: 'no-cors', // ഇത് നിർബന്ധമാണ്
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: "upload", sheetData: jsonData })
                 }).then(() => {
                     alert("ഡാറ്റ വിജയകരമായി അപ്‌ലോഡ് ചെയ്തു!");
-                    // ഷീറ്റിൽ സേവ് ആകാൻ 2 സെക്കൻഡ് സമയം നൽകുന്നു
-                    setTimeout(fetchData, 2000); 
+                    setTimeout(fetchData, 1500); 
                 }).catch(err => {
                     alert("അപ്‌ലോഡ് പരാജയപ്പെട്ടു!");
                     fetchData();
@@ -363,7 +255,6 @@
         reader.readAsArrayBuffer(file);
     }
 
-    // ആർക്കൈവ്
     async function archiveData() {
         if(confirm("പഴയ ഡാറ്റ Archive ചെയ്യണോ? മെയിൻ ഷീറ്റിലെ ഡാറ്റ മാഞ്ഞുപോകും.")) {
             document.getElementById('tableBody').innerHTML = '<tr><td colspan="11" class="status-msg">Archiving data... Please wait.</td></tr>';
