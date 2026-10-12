@@ -39,7 +39,6 @@
         .upload-wrapper { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         input[type="file"] { border: 2px dashed #cbd5e1; padding: 10px 15px; border-radius: 30px; flex: 1; min-width: 250px; background: #f8fafc; outline: none; font-family: var(--font-family);}
         
-        /* Search & Filter Styles */
         .filter-section { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); align-items: center;}
         .capsule-input { border-radius: 30px; padding: 12px 20px; border: 1px solid #cbd5e1; font-family: var(--font-family); font-size: 14px; outline: none; min-width: 250px; flex: 1; transition: var(--transition); background: #f8fafc; }
         .capsule-input:focus { border-color: var(--info); box-shadow: 0 0 0 3px rgba(75, 123, 236, 0.2); background: white; }
@@ -51,7 +50,6 @@
         th { background: #f8fafc; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 12px; }
         tr:hover { background-color: #f1f5f9; }
 
-        /* Modals */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(30, 30, 47, 0.7); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-card { background: white; padding: 35px 25px; border-radius: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-width: 420px; width: 90%; }
         .modal-icon { font-size: 45px; margin-bottom: 15px; }
@@ -94,7 +92,6 @@
         </div>
     </div>
 
-    <!-- New Filter & Search Section -->
     <div class="filter-section">
         <div style="flex: 1.5; display: flex; align-items: center; gap: 10px;">
             <i class="fa-solid fa-search" style="color: #64748b;"></i>
@@ -104,7 +101,6 @@
             <i class="fa-solid fa-filter" style="color: #64748b;"></i>
             <select id="classFilter" class="capsule-input" onchange="filterTable()">
                 <option value="ALL">All Classes</option>
-                <!-- Classes will load dynamically -->
             </select>
         </div>
     </div>
@@ -140,14 +136,13 @@
     </div>
 </div>
 
-<!-- Modals -->
 <div class="modal-overlay" id="alertModal"><div class="modal-card"><div class="modal-icon" id="alertIcon"></div><h3 id="alertTitle">Notification</h3><p id="alertMessage">Message</p><button class="pill-btn btn-primary" style="width: 100%;" onclick="CustomUI.closeAlert()">Okay</button></div></div>
 <div class="modal-overlay" id="confirmModal"><div class="modal-card"><div class="modal-icon"><i class="fa-solid fa-circle-question" style="color:var(--info);"></i></div><h3 id="confirmTitle">Confirm</h3><p id="confirmMessage">Are you sure?</p><div class="modal-actions"><button class="pill-btn btn-danger" style="flex:1;" id="confirmYesBtn">Yes</button><button class="pill-btn" style="flex:1; background: #cbd5e1; color:#1e293b;" onclick="CustomUI.closeConfirm()">Cancel</button></div></div></div>
 <div class="modal-overlay" id="queueModal"><div class="modal-card"><div class="modal-icon"><i class="fa-brands fa-whatsapp" style="color:var(--success);"></i></div><h3>Next Message Ready</h3><p id="queueText">Proceed?</p><button class="pill-btn btn-success" style="width: 100%; margin-bottom: 10px;" onclick="processQueue()">Send Next Message</button><button class="pill-btn" style="width: 100%; background: #cbd5e1; color:#1e293b;" onclick="cancelSending()">Cancel Queue</button></div></div>
 
 <script>
     const CONFIG = {
-        WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwFUH9-lUPkpG2DIfUuEqpq9T0TloS1ml_gXGrXB_IJn2-VD4a7a78SfeP9-wFYLulXLA/exec',
+        WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbymr6-kuDTjBkR_W74kTJ_IxA8oX0Drh4wdEKqStjadxYIaIGXAqFssBeMpqDC0-xp6sg/exec',
         PASSWORD: 'admin' 
     };
 
@@ -242,10 +237,20 @@
             tbody.innerHTML = '<tr><td colspan="13" style="text-align:center; padding: 20px;">No records found.</td></tr>';
             return;
         }
+        
         studentData.forEach((student, index) => {
             if(student['Name']) { 
-                // ഷീറ്റിലെ പുതിയ ഹെഡിങ്ങുകൾ (Monthly, Exam, Mess, Phone) നൽകിയിരിക്കുന്നു
-                let calcTotal = (Number(student['Monthly']) || 0) + (Number(student['Exam']) || 0) + (Number(student['Medical']) || 0) + (Number(student['Mess']) || 0) + (Number(student['Stationary']) || 0) + (Number(student['Others']) || 0);
+                // സ്പേസ് ഉള്ളതോ ഇല്ലാത്തതോ ആയ ഏത് ഹെഡിങ്ങും എടുക്കാൻ സാധിക്കുന്ന രീതി
+                let studentPhone = student['Phone'] || student['Phone '] || student['Mobile (F)'] || student['MOBILE (F)'] || '';
+                
+                let monthlyFee = Number(student['Monthly'] || student['Monthly Fee'] || 0);
+                let examFee = Number(student['Exam'] || student['Exam Fee'] || 0);
+                let medicalFee = Number(student['Medical'] || 0);
+                let messFee = Number(student['Mess'] || student['Mess Fee'] || 0);
+                let statFee = Number(student['Stationary'] || 0);
+                let othersFee = Number(student['Others'] || 0);
+
+                let calcTotal = monthlyFee + examFee + medicalFee + messFee + statFee + othersFee;
                 let displayTotal = student['Total'] ? (Number(student['Total']) || calcTotal) : calcTotal;
 
                 const tr = document.createElement('tr');
@@ -259,13 +264,13 @@
                     <td><span style="background:#e2e8f0; padding:4px 8px; border-radius:10px; font-size:12px;">${student['Class'] || '-'}</span></td>
                     <td style="font-weight: 500; color: var(--sidebar-dark);">${student['Name'] || ''}</td>
                     <td>${student['Father'] || ''}</td>
-                    <td>${student['Phone'] || ''}</td>
-                    <td>${student['Monthly'] || 0}</td>
-                    <td>${student['Exam'] || 0}</td>
-                    <td>${student['Medical'] || 0}</td>
-                    <td>${student['Mess'] || 0}</td>
-                    <td>${student['Stationary'] || 0}</td>
-                    <td>${student['Others'] || 0}</td>
+                    <td>${studentPhone}</td>
+                    <td>${monthlyFee}</td>
+                    <td>${examFee}</td>
+                    <td>${medicalFee}</td>
+                    <td>${messFee}</td>
+                    <td>${statFee}</td>
+                    <td>${othersFee}</td>
                     <td style="color:var(--info); font-weight: 600;">₹${displayTotal}</td>
                 `;
                 tbody.appendChild(tr);
@@ -279,7 +284,7 @@
         const rows = document.querySelectorAll('#tableBody tr');
 
         rows.forEach(row => {
-            if(row.children.length === 1) return; // Skip empty message row
+            if(row.children.length === 1) return; 
             
             const name = row.getAttribute('data-name').toLowerCase();
             const adNo = row.getAttribute('data-adno').toLowerCase();
@@ -298,7 +303,6 @@
 
     function toggleAll() {
         const selectAll = document.getElementById('selectAll').checked;
-        // Visible rows മാത്രം select ചെയ്യാൻ
         document.querySelectorAll('#tableBody tr').forEach(row => {
             if(row.style.display !== 'none') {
                 const cb = row.querySelector('.student-checkbox');
@@ -310,37 +314,43 @@
     function startSendingMessages() {
         messagesQueue = [];
         const checkboxes = document.querySelectorAll('.student-checkbox:checked');
-        
-        if(checkboxes.length === 0) {
-            CustomUI.alert("Selection Required", "Please select at least one student.", "error");
-            return;
-        }
+        if(checkboxes.length === 0) { CustomUI.alert("Selection Required", "Please select at least one student.", "error"); return; }
 
         checkboxes.forEach(cb => {
             const index = cb.getAttribute('data-index');
             const student = studentData[index];
-            const phone = student['Phone']; // Phone എന്ന് മാറ്റി
+            const phone = student['Phone'] || student['Phone '] || student['Mobile (F)'] || student['MOBILE (F)']; 
             
             if (phone) {
-                let breakdown = '';
-                if(student['Monthly']) breakdown += `Monthly Fee: ₹${student['Monthly']}\n`;
-                if(student['Exam']) breakdown += `Exam Fee: ₹${student['Exam']}\n`;
-                if(student['Medical']) breakdown += `Medical: ₹${student['Medical']}\n`;
-                if(student['Mess']) breakdown += `Mess Fee: ₹${student['Mess']}\n`;
-                if(student['Stationary']) breakdown += `Stationary: ₹${student['Stationary']}\n`;
-                if(student['Others']) breakdown += `Others: ₹${student['Others']}\n`;
+                let monthlyFee = Number(student['Monthly'] || student['Monthly Fee'] || 0);
+                let examFee = Number(student['Exam'] || student['Exam Fee'] || 0);
+                let medicalFee = Number(student['Medical'] || 0);
+                let messFee = Number(student['Mess'] || student['Mess Fee'] || 0);
+                let statFee = Number(student['Stationary'] || 0);
+                let othersFee = Number(student['Others'] || 0);
 
-                let calcTotal = (Number(student['Monthly']) || 0) + (Number(student['Exam']) || 0) + (Number(student['Medical']) || 0) + (Number(student['Mess']) || 0) + (Number(student['Stationary']) || 0) + (Number(student['Others']) || 0);
+                let breakdown = '';
+                if(monthlyFee > 0) breakdown += `Monthly Fee: ₹${monthlyFee}\n`;
+                if(examFee > 0) breakdown += `Exam Fee: ₹${examFee}\n`;
+                if(medicalFee > 0) breakdown += `Medical: ₹${medicalFee}\n`;
+                if(messFee > 0) breakdown += `Mess Fee: ₹${messFee}\n`;
+                if(statFee > 0) breakdown += `Stationary: ₹${statFee}\n`;
+                if(othersFee > 0) breakdown += `Others: ₹${othersFee}\n`;
+                
+                let calcTotal = monthlyFee + examFee + medicalFee + messFee + statFee + othersFee;
                 const totalFee = student['Total'] ? (Number(student['Total']) || calcTotal) : calcTotal;
 
                 const message = `പ്രിയപ്പെട്ട ${student['Father'] || ''},\nനിങ്ങളുടെ മകൾ ${student['Class'] || ''} ക്ലാസ്സിൽ പഠിക്കുന്ന (SNEC അഡ്മിഷൻ നമ്പർ: ${student['Ad No'] || ''}) ${student['Name'] || ''} എന്ന വിദ്യാർത്ഥിനിയുടെ OCTOBER മാസത്തിലെത് ഉൾപ്പെടെ Course fee താഴെ പറയുന്നവയാണ്:\n\n${breakdown}\nആകെ അടക്കേണ്ട തുക (Total): ₹${totalFee}\n\nഈ തുക 05/10/2026-ന് മുമ്പ് അടച്ചു തീർക്കേണ്ടതാണ്.\n\nഫീ ഓഫീസിൽ നേരിട്ട് എത്തിക്കുകയോ താഴെ നൽകിയിരിക്കുന്ന അക്കൗണ്ടിലേക്ക് അയച്ച് സ്ക്രീൻ ഷോട്ട് /റസിപ്പറ്റി ന്റെ ഫോട്ടോ കുട്ടിയുടെ പേര്,ക്ലാസ്സ്‌ എന്നിവ 9447810041 എന്ന വാട്സാപ്പ് നമ്പറിലേക്ക് അയക്കുകയോ ചെയ്യുക\n(Transaction ID യും തിയ്യതിയും കാണുന്ന രീതിയിൽ അയക്കാൻ ശ്രദ്ധിക്കുക.)\n\nAc No: 16470200012711\nName: Crescent SNEC She Campus \nFederal Bank of India\nChelari\nIFSC : FDRL0001647`;
-                
                 messagesQueue.push({phone, message, checkbox: cb, studentName: student['Name']});
             }
         });
-
-        if(messagesQueue.length > 0) processQueue();
+        if(messagesQueue.length > 0) {
+            processQueue();
+        } else {
+            CustomUI.alert("Error", "No valid phone numbers found for the selected students.", "error");
+        }
     }
+
     function processQueue() {
         document.getElementById('queueModal').style.display = 'none';
          if (messagesQueue.length > 0) {
