@@ -244,8 +244,8 @@
         }
         studentData.forEach((student, index) => {
             if(student['Name']) { 
-                // ടോട്ടൽ തുക ഇല്ലെങ്കിൽ തനിയെ കൂട്ടിയെടുക്കാൻ
-                let calcTotal = (Number(student['Monthly Fee']) || 0) + (Number(student['Exam Fee']) || 0) + (Number(student['Medical']) || 0) + (Number(student['Mess Fee']) || 0) + (Number(student['Stationary']) || 0) + (Number(student['Others']) || 0);
+                // ഷീറ്റിലെ പുതിയ ഹെഡിങ്ങുകൾ (Monthly, Exam, Mess, Phone) നൽകിയിരിക്കുന്നു
+                let calcTotal = (Number(student['Monthly']) || 0) + (Number(student['Exam']) || 0) + (Number(student['Medical']) || 0) + (Number(student['Mess']) || 0) + (Number(student['Stationary']) || 0) + (Number(student['Others']) || 0);
                 let displayTotal = student['Total'] ? (Number(student['Total']) || calcTotal) : calcTotal;
 
                 const tr = document.createElement('tr');
@@ -259,11 +259,11 @@
                     <td><span style="background:#e2e8f0; padding:4px 8px; border-radius:10px; font-size:12px;">${student['Class'] || '-'}</span></td>
                     <td style="font-weight: 500; color: var(--sidebar-dark);">${student['Name'] || ''}</td>
                     <td>${student['Father'] || ''}</td>
-                    <td>${student['Mobile (F)'] || ''}</td>
-                    <td>${student['Monthly Fee'] || 0}</td>
-                    <td>${student['Exam Fee'] || 0}</td>
+                    <td>${student['Phone'] || ''}</td>
+                    <td>${student['Monthly'] || 0}</td>
+                    <td>${student['Exam'] || 0}</td>
                     <td>${student['Medical'] || 0}</td>
-                    <td>${student['Mess Fee'] || 0}</td>
+                    <td>${student['Mess'] || 0}</td>
                     <td>${student['Stationary'] || 0}</td>
                     <td>${student['Others'] || 0}</td>
                     <td style="color:var(--info); font-weight: 600;">₹${displayTotal}</td>
@@ -319,22 +319,20 @@
         checkboxes.forEach(cb => {
             const index = cb.getAttribute('data-index');
             const student = studentData[index];
-            const phone = student['Mobile (F)']; 
+            const phone = student['Phone']; // Phone എന്ന് മാറ്റി
             
             if (phone) {
                 let breakdown = '';
-                if(student['Monthly Fee']) breakdown += `Monthly Fee: ₹${student['Monthly Fee']}\n`;
-                if(student['Exam Fee']) breakdown += `Exam Fee: ₹${student['Exam Fee']}\n`;
+                if(student['Monthly']) breakdown += `Monthly Fee: ₹${student['Monthly']}\n`;
+                if(student['Exam']) breakdown += `Exam Fee: ₹${student['Exam']}\n`;
                 if(student['Medical']) breakdown += `Medical: ₹${student['Medical']}\n`;
-                if(student['Mess Fee']) breakdown += `Mess Fee: ₹${student['Mess Fee']}\n`;
+                if(student['Mess']) breakdown += `Mess Fee: ₹${student['Mess']}\n`;
                 if(student['Stationary']) breakdown += `Stationary: ₹${student['Stationary']}\n`;
                 if(student['Others']) breakdown += `Others: ₹${student['Others']}\n`;
 
-                // ടോട്ടൽ തുക ഇല്ലെങ്കിൽ തനിയെ കൂട്ടിയെടുക്കാൻ
-                let calcTotal = (Number(student['Monthly Fee']) || 0) + (Number(student['Exam Fee']) || 0) + (Number(student['Medical']) || 0) + (Number(student['Mess Fee']) || 0) + (Number(student['Stationary']) || 0) + (Number(student['Others']) || 0);
+                let calcTotal = (Number(student['Monthly']) || 0) + (Number(student['Exam']) || 0) + (Number(student['Medical']) || 0) + (Number(student['Mess']) || 0) + (Number(student['Stationary']) || 0) + (Number(student['Others']) || 0);
                 const totalFee = student['Total'] ? (Number(student['Total']) || calcTotal) : calcTotal;
 
-                // പുതിയ മെസ്സേജ് ഫോർമാറ്റ്
                 const message = `പ്രിയപ്പെട്ട ${student['Father'] || ''},\nനിങ്ങളുടെ മകൾ ${student['Class'] || ''} ക്ലാസ്സിൽ പഠിക്കുന്ന (SNEC അഡ്മിഷൻ നമ്പർ: ${student['Ad No'] || ''}) ${student['Name'] || ''} എന്ന വിദ്യാർത്ഥിനിയുടെ OCTOBER മാസത്തിലെത് ഉൾപ്പെടെ Course fee താഴെ പറയുന്നവയാണ്:\n\n${breakdown}\nആകെ അടക്കേണ്ട തുക (Total): ₹${totalFee}\n\nഈ തുക 05/10/2026-ന് മുമ്പ് അടച്ചു തീർക്കേണ്ടതാണ്.\n\nഫീ ഓഫീസിൽ നേരിട്ട് എത്തിക്കുകയോ താഴെ നൽകിയിരിക്കുന്ന അക്കൗണ്ടിലേക്ക് അയച്ച് സ്ക്രീൻ ഷോട്ട് /റസിപ്പറ്റി ന്റെ ഫോട്ടോ കുട്ടിയുടെ പേര്,ക്ലാസ്സ്‌ എന്നിവ 9447810041 എന്ന വാട്സാപ്പ് നമ്പറിലേക്ക് അയക്കുകയോ ചെയ്യുക\n(Transaction ID യും തിയ്യതിയും കാണുന്ന രീതിയിൽ അയക്കാൻ ശ്രദ്ധിക്കുക.)\n\nAc No: 16470200012711\nName: Crescent SNEC She Campus \nFederal Bank of India\nChelari\nIFSC : FDRL0001647`;
                 
                 messagesQueue.push({phone, message, checkbox: cb, studentName: student['Name']});
@@ -343,7 +341,6 @@
 
         if(messagesQueue.length > 0) processQueue();
     }
-
     function processQueue() {
         document.getElementById('queueModal').style.display = 'none';
          if (messagesQueue.length > 0) {
